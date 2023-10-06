@@ -1,0 +1,130 @@
+𝐏𝐮𝐫𝐩𝐨𝐬𝐞 : 𝐏𝐮𝐫𝐩𝐨𝐬𝐞 : 𝐓𝐡𝐢𝐬 𝐬𝐞𝐫𝐯𝐞𝐫 𝐒𝐜𝐫𝐢𝐩𝐭 𝐢𝐬 𝐰𝐫𝐢𝐭𝐭𝐞𝐧 𝐭𝐨 𝐬𝐞𝐧𝐝 𝐧𝐨𝐭𝐢𝐟𝐢𝐜𝐚𝐭𝐢𝐨𝐧 𝐭𝐨 𝐭𝐡𝐞 𝐞𝐦𝐩𝐥𝐨𝐲𝐞𝐞'𝐬 𝐚𝐛𝐨𝐮𝐭 𝐭𝐡𝐞 𝐮𝐩𝐜𝐨𝐦𝐢𝐧𝐠 𝐡𝐨𝐥𝐢𝐝𝐚𝐲𝐬.
+
+# Get all the employee information
+
+employees=frappe.db.sql(""" SELECT a.employee,a.cell_number,a.country_code,a.employee_name,b.start_time,a.preferred_language
+                        FROM 
+                        `tabEmployee` as a
+                        INNER JOIN 
+                        `tabShift Type` as b
+                        ON a.default_shift=b.name
+                        WHERE a.status="Active";""",as_dict=True)
+                        
+# frappe.errprint(employees)
+
+for i in employees:
+    
+    # Recipient contains the contact number along with country code
+    
+    recipient=i.country_code+i.cell_number
+    
+    # holiday_list contains the details about the holidays
+    
+    holiday_list=frappe.db.sql("""SELECT a.employee,c.holiday_date as date, c.description as description
+                                            FROM 
+                                            `tabEmployee` as a
+                                            INNER JOIN 
+                                            `tabHoliday List` as b
+                                            ON a.holiday_list=b.name
+                                            INNER JOIN 
+                                            `tabHoliday` as c
+                                            ON b.name=c.parent
+                                            WHERE a.employee=%s""",(i.employee),as_dict=True)
+                                            
+    # frappe.errprint(holiday_list)
+    
+    # ct contains the curret date
+    
+    ct=frappe.utils.getdate()
+    # frappe.errprint(ct)
+
+    # time_difference contains the start time of the shift in seconds
+
+    time_difference=frappe.utils.get_datetime(i.start_time).seconds
+    # frappe.errprint(time_difference)
+    
+    # Converting the time_difference in hours
+    
+    hours = time_difference // 3600 
+    # frappe.errprint(hours)
+    
+    # Converting the time_difference in minutes
+    
+    minutes = (time_difference // 60) % 60
+    # frappe.errprint(minutes)
+    
+    # Converting the time_difference in seconds
+    
+    seconds = time_difference % 60
+    # frappe.errprint(seconds)
+    
+    # t1 contains the value for the first time
+    
+    t1=frappe.utils.add_to_date(frappe.utils.getdate(),hours=hours+3,minutes=minutes+57,seconds=seconds)
+    # frappe.errprint(t1)
+    
+    # t11 contains the value for the second time
+    
+    t11=frappe.utils.add_to_date(t1,minutes=60)
+    # frappe.errprint(t11)
+    
+    for j in holiday_list:
+        
+        # frappe.errprint(j.date)
+        
+        date=frappe.utils.add_to_date(j.date,days=-1)
+        
+        # Check if the current date matches with the holiday date
+        
+        if(ct==date):
+            
+            # now contains current date and time in the "YYYY-MM-DD HH:MM:SS.SSSSSS" format.
+            
+            now=frappe.utils.get_datetime(frappe.utils.now())
+            
+            # day_of_week contains the name of the days of the week
+            
+            day_of_week=(j.date).weekday()
+            
+            # Declaring the name of the days
+            
+            day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+            
+            formatted_date = day_names[day_of_week]
+            
+            day = str((j.date).day)
+            
+            # Check and set the value in suffix as th,st,rd and nd after the date
+            
+            if 10 <= (j.date).day <= 20:
+                
+                suffix = "th"
+                
+            else:
+                
+                suffix = {1: "st", 2: "nd", 3: "rd"}.get((j.date).day % 10, "th")
+                
+            # frappe.errprint(suffix)
+            
+            # Check and select the language of the message
+            
+            if(i.preferred_language == "Bengali"):
+                
+                msg = """নমস্কার! *%s*, *%s* উপলক্ষে *%s*, *%s%s %s* ছুটি রয়েছে।"""%(i.employee_name,j.description,formatted_date,day,suffix,frappe.format_date(j.date, "MMMM yyyy") )
+            
+            elif(i.preferred_language == "Hindi"):
+                
+               msg = """नमस्ते! *%s*,  *%s*, *%s%s %s* को *%s* के अवसर पर छुट्टी रहेगी"""%(i.employee_name,formatted_date,day,suffix,frappe.format_date(j.date, "MMMM ,yyyy"),j.description )
+                
+            else:
+                
+                msg = """Hello! *%s*, we have a Holiday on the occasion of *%s* on *%s*, *%s%s %s*."""%(i.employee_name,j.description,formatted_date,day,suffix,frappe.format_date(j.date, "MMMM yyyy") )
+                
+            if(t1 < now <= t11): 
+                
+                frappe.call('gewin_payroll.wa.send_text_message',recipient="9647028701",message=msg,preview="False")
+                
+            else:
+                
+                frappe.errprint("Scheduler is not ready to trigger")
+                

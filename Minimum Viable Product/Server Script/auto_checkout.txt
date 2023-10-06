@@ -1,0 +1,88 @@
+𝐏𝐮𝐫𝐩𝐨𝐬𝐞 : 𝐓𝐡𝐢𝐬 𝐬𝐞𝐫𝐯𝐞𝐫 𝐒𝐜𝐫𝐢𝐩𝐭 𝐢𝐬 𝐰𝐫𝐢𝐭𝐭𝐞𝐧 𝐭𝐨 𝐮𝐩𝐝𝐚𝐭𝐞 𝐭𝐡𝐞 𝐞𝐦𝐩𝐥𝐨𝐲𝐞𝐞'𝐬 𝐚𝐭𝐭𝐞𝐧𝐝𝐚𝐧𝐜𝐞 𝐚𝐟𝐭𝐞𝐫 𝐭𝐡𝐞 𝐬𝐡𝐢𝐟𝐭 𝐞𝐧𝐝𝐬 𝐚𝐬 𝐜𝐡𝐞𝐜𝐤𝐞𝐝 𝐨𝐮𝐭, 𝐢𝐟 𝐧𝐨 𝐜𝐡𝐞𝐜𝐤𝐞𝐝 𝐨𝐮𝐭 𝐢𝐬 𝐦𝐚𝐫𝐤𝐞𝐝 𝐛𝐲 𝐭𝐡𝐚𝐭 𝐞𝐦𝐩𝐥𝐨𝐲𝐞𝐞 𝐢𝐭𝐬𝐞𝐥𝐟.
+
+t = 4
+
+# Count of employee from Employee checkin Doctype
+
+employees = frappe.db.sql("""SELECT COUNT(a.employee) as count,
+
+            a.employee, b.employee_name, b.cell_number, c.end_time
+            
+            FROM `tabEmployee Checkin` as a
+            
+            INNER JOIN 
+            `tabEmployee` as b
+            ON a.employee = b.employee
+            
+            INNER JOIN
+            `tabShift Type` as c
+            ON b.default_shift = c.name
+            
+            WHERE DATE(a.time) = CURDATE()
+            
+            GROUP BY a.employee;""",as_dict = True)
+            
+# frappe.errprint(employees)
+    
+for i in employees:
+
+    if (i.count >= 1):
+        
+        log_type=frappe.db.sql("""SELECT log_type, time
+        FROM
+        `tabEmployee Checkin`
+        WHERE employee=%s
+        ORDER BY time DESC limit 1;""",(i.employee),as_dict=True)
+         
+        # frappe.errprint(log_type[0].log_type) 
+        
+        if(log_type[0].log_type!="OUT"):
+            
+            device_id = """00|00|00:none:autocheckout"""  # format of device id
+            
+            current_time = frappe.utils.get_datetime(frappe.utils.nowtime())  # capturing the current time
+    
+            shift_end = (frappe.utils.get_datetime(i.end_time)).seconds  # Converting the shift end from time format to date time format
+            
+            hour = shift_end // 3600 # frappe.errprint(hour)  
+            
+            minute = (shift_end // 60) % 60 # frappe.errprint(minute)
+            
+            second = (shift_end % 60)  # frappe.errprint(second)
+            
+            # Store the shift_end as shift_end_time in datetime format
+            
+            shift_end_time = frappe.utils.add_to_date(frappe.utils.getdate(),hours = hour, minutes = minute, seconds = second)
+            
+            # Time of last action taken by (Check In or Check Out) an employee
+            
+            last_action = frappe.utils.get_datetime(log_type[0].time)
+            
+            # frappe.errprint(last_action)
+            
+            # frappe.errprint(i.employee)
+            
+            # Check if the last check in time is greater than the shift end time or not
+            
+            if(last_action < shift_end_time):
+                
+                timestamp = shift_end_time
+                
+            else: 
+                
+                timestamp = frappe.utils.add_to_date(last_action, seconds = 60)
+    
+            # Declaring first time
+
+            t1 = frappe.utils.add_to_date(shift_end_time,minutes=(-3) * 60)
+            
+            # Declaring second time
+            
+            t2 = frappe.utils.add_to_date(t1,minutes=60)
+            
+            # Check if the current time lies between t1 & t2
+            
+            if(t1<current_time<=t2):
+            
+                frappe.call('erpnext.hr.doctype.employee_checkin.employee_checkin.add_log_based_on_employee_field',employee_field_value = i.employee, timestamp = timestamp, device_id = device_id, log_type = "OUT")
+    

@@ -1,0 +1,94 @@
+𝐏𝐮𝐫𝐩𝐨𝐬𝐞 : 𝐓𝐡𝐢𝐬 𝐬𝐞𝐫𝐯𝐞𝐫 𝐒𝐜𝐫𝐢𝐩𝐭 𝐢𝐬 𝐰𝐫𝐢𝐭𝐭𝐞𝐧 𝐭𝐨 𝐬𝐞𝐧𝐝 𝐚𝐧 𝐮𝐩𝐝𝐚𝐭𝐞 𝐚𝐛𝐨𝐮𝐭 𝐭𝐡𝐞 𝐞𝐦𝐩𝐥𝐨𝐲𝐞𝐞 𝐥𝐢𝐬𝐭 𝐭𝐨 𝐭𝐡𝐞 𝐫𝐞𝐩𝐨𝐫𝐭𝐬 𝐭𝐨 𝐚𝐛𝐨𝐮𝐭 𝐡𝐢𝐬/𝐡𝐞𝐫 𝐫𝐞𝐩𝐨𝐫𝐭𝐞𝐞𝐬.𝐓𝐡𝐢𝐬 𝐦𝐞𝐬𝐬𝐚𝐠𝐞 𝐰𝐢𝐥𝐥 𝐭𝐫𝐢𝐠𝐠𝐞𝐫 𝐢𝐟 𝐭𝐡𝐞 𝐫𝐞𝐩𝐨𝐫𝐭𝐬 𝐭𝐨 𝐬𝐞𝐧𝐝 "𝐄" 𝐢𝐧 𝐭𝐡𝐞 𝐰𝐡𝐚𝐭𝐬𝐚𝐩𝐩 𝐜𝐡𝐚𝐭.
+
+# Get the name of the companies
+
+company = frappe.db.sql("""SELECT DISTINCT company FROM `tabEmployee`;""",as_dict = True)
+
+# frappe.errprint(company)
+
+for i in company:
+
+    # Current Date
+    
+    current_date=frappe.utils.nowdate()
+        
+    # employees contains all the information related to employee
+        
+    employees=frappe.db.sql("""SELECT DISTINCT employee,employee_name,department,cell_number,reports_to FROM `tabEmployee`
+    WHERE status = 'Active' AND reports_to=%s AND company = %s;""",('EMP/23/0000',i.company))
+    
+    # frappe.errprint(employees)
+    
+    # Stores all employee information (employee id, employee name) reports to wise into d
+    
+    d={}
+    
+    for a in employees:
+        
+        # frappe.errprint(a)
+        
+        phone=frappe.db.sql("""SELECT cell_number FROM `tabEmployee` WHERE employee=%s""",(a[4]),as_dict=True)
+    
+        if phone:
+            
+            if len(phone[0].cell_number)>=10:
+                
+                s = a+(phone[0].cell_number,)
+                
+                # frappe.errprint(s)
+                
+                if s[5] in d.keys():
+                    
+                    if s[2] in d[s[5]].keys():
+                        
+                        d[s[5]][s[2]].append([s[0], s[1],s[3]])
+                        
+                    else:
+                        
+                        d[s[5]][s[2]]=[]
+                        d[s[5]][s[2]].append([s[0], s[1],s[3]])
+                    
+                else:
+                    d[s[5]]={}
+                    d[s[5]][s[2]] = []
+                    d[s[5]][s[2]].append([s[0],s[1],s[3]])
+        
+            else:
+                
+                frappe.errprint("Phone Number is not Correct")
+        else:
+            
+            frappe.errprint("Phone Number is not present")
+    
+    
+    msg = """*%s* \n"""%(i.company)       
+       
+    # frappe.errprint(d)
+       
+    if(len(d) != 0):
+       
+        for t in d:
+            
+            msg= msg + """*Department Wise Employee List -* \n"""
+        
+            for q in d[t]:
+        
+                count = 0
+                
+                msg = msg + """*%s* \n""" %(q)
+                
+                for y in d[t][q]:
+                    
+                    count=count+1;
+        
+                    msg = msg + """ %s. %s-%s \n""" %(count,y[1],y[2])
+                    
+    else:
+        
+        msg = msg + """No data is present"""
+        
+    frappe.call('gewin_payroll.wa.send_text_message',recipient=t,message=msg,preview="False")
+    frappe.call('gewin_payroll.wa.send_text_message',recipient="9647028701",message=msg,preview="False")
+    frappe.call('gewin_payroll.wa.send_text_message',recipient="9340425342",message=msg,preview="False")
+
+frappe.response["message"]="success"

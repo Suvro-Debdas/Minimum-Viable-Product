@@ -1,0 +1,172 @@
+𝐏𝐮𝐫𝐩𝐨𝐬𝐞: 𝐓𝐡𝐢𝐬 𝐬𝐞𝐫𝐯𝐞𝐫 𝐒𝐜𝐫𝐢𝐩𝐭 𝐢𝐬 𝐰𝐫𝐢𝐭𝐭𝐞𝐧 𝐭𝐨 𝐬𝐞𝐧𝐝 𝐚𝐧 𝐮𝐩𝐝𝐚𝐭𝐞 𝐚𝐛𝐨𝐮𝐭 𝐭𝐡𝐞 𝐚𝐛𝐬𝐞𝐧𝐭𝐞𝐞𝐬 𝐟𝐨𝐫 𝐭𝐡𝐞 𝐜𝐮𝐫𝐫𝐞𝐧𝐭 𝐝𝐚𝐭𝐞 𝐭𝐨 𝐭𝐡𝐞 𝐫𝐞𝐩𝐨𝐫𝐭𝐬 𝐭𝐨 𝐚𝐛𝐨𝐮𝐭 𝐡𝐢𝐬/𝐡𝐞𝐫 𝐫𝐞𝐩𝐨𝐫𝐭𝐞𝐞𝐬.𝐓𝐡𝐢𝐬 𝐦𝐞𝐬𝐬𝐚𝐠𝐞 𝐰𝐢𝐥𝐥 𝐭𝐫𝐢𝐠𝐠𝐞𝐫 𝐢𝐟 𝐭𝐡𝐞 𝐫𝐞𝐩𝐨𝐫𝐭𝐬 𝐭𝐨 𝐬𝐞𝐧𝐝 "𝐀" 𝐢𝐧 𝐭𝐡𝐞 𝐰𝐡𝐚𝐭𝐬𝐚𝐩𝐩 𝐜𝐡𝐚𝐭.
+
+# Getting the name of the companies
+
+company = frappe.db.sql("""SELECT DISTINCT company FROM `tabEmployee`;""",as_dict = True)
+
+# frappe.errprint(company)
+
+for i in company:
+    
+    # frappe.errprint(i.company)
+
+    # Current Date
+    
+    current_date=frappe.utils.nowdate()
+        
+    # attendance is containing information about the employees who are present for the current date.
+        
+    attendance=frappe.db.sql("""SELECT DISTINCT a.employee FROM `tabEmployee Checkin` AS a
+    INNER JOIN `tabEmployee` AS b
+    ON a.employee = b.employee
+    WHERE DATE(a.time) = CURDATE() AND b.reports_to=%s AND b.company = %s;""",('EMP/23/0000',i.company))
+    
+    # frappe.errprint(attendance)
+    
+    # employees is containing information about those employees who are subscribed to whatsaapp notification.
+    
+    employees=frappe.db.sql("""SELECT DISTINCT a.user_id,a.employee,a.employee_name,a.reports_to,a.department,b.start_time 
+    FROM `tabEmployee` as a
+    INNER JOIN 
+    `tabShift Type` as b
+    ON a.default_shift = b.name
+    WHERE a.status="Active" AND 
+    a.whatsapp_subscription="Yes" AND 
+    a.reports_to=%s AND a.company = %s;""",('EMP/23/0000',i.company))
+    
+    # frappe.errprint(employees)
+    
+    # leaves is containing information about the employees who has applied for any leave for current date
+    
+    leaves=frappe.db.sql("""SELECT 
+            a.employee,a.employee_name,a.leave_type,a.department,a.from_date,a.to_date,a.half_day,a.half_day_date,a.total_leave_days
+            FROM
+            `tabLeave Application` AS a
+            INNER JOIN `tabEmployee` AS b
+            ON a.employee = b.employee
+            WHERE CURDATE() BETWEEN a.from_date AND 
+            a.to_date AND b.reports_to=%s AND b.company = %s;""",
+            ('EMP/23/0000',i.company),as_dict=True)
+    
+    # frappe.errprint(leaves)
+    
+    # Append all the values into c, who has not marked their attendance
+    
+    c = ()
+    
+    for e in employees:
+        
+        flag=False
+        
+        for a in attendance: 
+            
+            if e[1]==a[0]:
+                
+                flag=True
+                
+                break
+            
+        if (flag==False):
+            
+            # "C" contains information about those employees who has not marked their attendance for the current date
+            
+            c=c+(e,)
+    
+    # Append all the values into k, neither who has not marked their attendance nor appled for any leave   
+           
+    k=()
+    
+    for z in c:
+        
+        fg=False
+        
+        for p in leaves:
+            
+            if z[1]==p.employee:
+                
+                fg=True
+                
+                break
+            
+        if(fg==False):
+            
+            # "K" contains information about those employees who has not marked their attendance nor applied for any leave for the current date
+            
+            k=k+(z,)
+    
+    # Stores all employee information (employee id, employee name) reports to wise into d
+            
+    d={}
+    
+    for a in k:
+        
+        phone=frappe.db.sql("""SELECT cell_number FROM `tabEmployee` WHERE employee=%s""",(a[3]),as_dict=True)
+    
+        if phone:
+            
+            if len(phone[0].cell_number)>=10:
+                
+                s = a+(phone[0].cell_number,)
+                
+                # frappe.errprint(s)
+                
+                if s[6] in d.keys():
+            
+                    if s[4] in d[s[6]].keys():
+                        
+                        d[s[6]][s[4]].append([s[1], s[2],s[5]])
+                        
+                    else:
+                        
+                        d[s[6]][s[4]]=[]
+                        d[s[6]][s[4]].append([s[1], s[2],s[5]])
+                    
+                else:
+                    d[s[6]]={}
+                    d[s[6]][s[4]] = []
+                    d[s[6]][s[4]].append([s[1],s[2],s[5]])
+        
+            else:
+                
+                frappe.errprint("Phone Number is not Correct")
+        else:
+            
+            frappe.errprint("Phone Number is not present")
+    
+    
+    msg = """*%s* \n"""%(i.company)       
+    
+    # frappe.errprint(len(d))
+    # frappe.errprint(d)
+    
+    if(len(d) != 0):
+        
+        for t in d:
+            
+            msg= msg + """Update on : %s \nNo attendance has been marked on %s for- \n"""%(frappe.utils.format_time(frappe.utils.nowtime(), "HH:mm:ss"),frappe.format_date(current_date, "dd-MM-YYYY"))
+        
+            for q in d[t]:
+        
+                count = 0
+                
+                msg = msg + """ *%s* \n""" %(q)
+                
+                for y in d[t][q]:
+                    
+                    count=count+1;
+        
+                    msg = msg + """ %s. %s-%s(SST) \n""" %(count,y[1],frappe.utils.format_time(y[2],"HH:mm"))
+                    
+            msg = msg + """ *SST = Shift Start Time* """
+            
+    else: 
+    
+        msg = msg + """All the employees are present for %s"""%(frappe.format_date(current_date, "dd-MM-YYYY"))
+    
+    # frappe.call('gewin_payroll.wa.send_text_message',recipient=t,message=msg,preview="False")
+    frappe.call('gewin_payroll.wa.send_text_message',recipient="9647028701",message=msg,preview="False")
+    frappe.call('gewin_payroll.wa.send_text_message',recipient="9340425342",message=msg,preview="False")
+
+
+frappe.response["message"]="success"
+

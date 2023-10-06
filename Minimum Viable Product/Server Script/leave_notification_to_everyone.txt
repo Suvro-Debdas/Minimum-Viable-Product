@@ -1,0 +1,86 @@
+𝐏𝐮𝐫𝐩𝐨𝐬𝐞 : 𝐓𝐡𝐢𝐬 𝐬𝐞𝐫𝐯𝐞𝐫 𝐒𝐜𝐫𝐢𝐩𝐭 𝐢𝐬 𝐰𝐫𝐢𝐭𝐭𝐞𝐧 𝐭𝐨 𝐬𝐞𝐧𝐝 𝐧𝐨𝐭𝐢𝐟𝐢𝐜𝐚𝐭𝐢𝐨𝐧 𝐭𝐨 𝐭𝐡𝐞 𝐞𝐦𝐩𝐥𝐨𝐲𝐞𝐞'𝐬 𝐚𝐛𝐨𝐮𝐭 𝐭𝐡𝐞 𝐥𝐞𝐚𝐯𝐞 𝐨𝐫 𝐰𝐞𝐞𝐤 𝐨𝐟𝐟.
+
+t=0.5
+
+employees = frappe.db.sql("""SELECT a.employee,a.employee_name,a.cell_number,a.preferred_language,b.start_time,a.country_code
+                            FROM `tabEmployee` as a
+                            INNER JOIN `tabShift Type` as b
+                            ON a.default_shift = b.name
+                            WHERE a.status = 'Active';""",as_dict = True)
+                            
+ 
+# frappe.errprint(employees)
+                            
+for i in employees:
+    
+    attendance = frappe.db.sql("""SELECT COUNT(a.employee) as count FROM
+                                    (SELECT employee,DATE(time),log_type as date
+                                    FROM `tabEmployee Checkin`
+                                    WHERE DATE(time) = CURDATE()) as a
+                                WHERE a.employee = %s;""",(i.employee),as_dict = True)
+                                    
+    # frappe.errprint(attendance)
+    
+    # ct contains the curret date
+    
+    ct=frappe.utils.getdate()
+    # frappe.errprint(ct)
+
+    # time_difference contains the start time of the shift in seconds
+
+    time_difference=frappe.utils.get_datetime(i.start_time).seconds
+    # frappe.errprint(time_difference)
+    
+    # Converting the time_difference in hours
+    
+    hours = time_difference // 3600 
+    # frappe.errprint(hours)
+    
+    # Converting the time_difference in minutes
+    
+    minutes = (time_difference // 60) % 60
+    # frappe.errprint(minutes)
+    
+    # Converting the time_difference in seconds
+    
+    seconds = time_difference % 60
+    # frappe.errprint(seconds)
+    
+    # t1 contains the value for the first time
+    
+    t1=frappe.utils.add_to_date(frappe.utils.getdate(),hours=hours+t,minutes=minutes,seconds=seconds)
+    # frappe.errprint(t1)
+    
+    # t11 contains the value for the second time
+    
+    t11=frappe.utils.add_to_date(t1,minutes=4)
+    # frappe.errprint(t11)
+    
+    # now contains current date and time in the "YYYY-MM-DD HH:MM:SS.SSSSSS" format.
+        
+    now=frappe.utils.get_datetime(frappe.utils.now())
+    
+    if(attendance[0].count == 0):
+        
+        # frappe.errprint(i.employee)
+        
+        if(t1 < now <= t11):
+                
+            content = frappe.db.get_value('WA Message Templates', {'template_name': 'Leave Confirmation Notification', 'template_language': i.preferred_language}, ['content'])
+        
+            # frappe.errprint(content)
+            
+            msg = content%(i.employee_name)
+            
+            # frappe.errprint(msg)
+            
+            frappe.call('gewin_payroll.wa.send_text_message',recipient="9647028701",message=msg,preview="False")
+            
+            frappe.call('gewin_payroll.wa.send_text_message',recipient="9340425342",message=msg,preview="False")
+            
+            # frappe.call('gewin_payroll.wa.send_text_message',recipient=recipient,message=msg,preview="False")
+                
+        else:
+                
+            frappe.errprint("Scheduler is not ready to trigger")
+    
