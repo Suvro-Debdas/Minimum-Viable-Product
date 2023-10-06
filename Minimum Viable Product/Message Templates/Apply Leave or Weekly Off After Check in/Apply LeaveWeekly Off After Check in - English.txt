@@ -1,0 +1,1 @@
+You have already marked your Check In for {date}, so request for Leave/Weekly Off is not granted.

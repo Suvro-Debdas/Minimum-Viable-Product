@@ -1,0 +1,1 @@
+নমস্কার! {name}, {description} উপলক্ষে,  {day}, {date,suffix,month & year} এ ছুটি রয়েছে।

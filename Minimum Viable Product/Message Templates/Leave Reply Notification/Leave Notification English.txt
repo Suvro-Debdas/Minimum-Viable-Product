@@ -1,0 +1,1 @@
+Thank you {Name}, you {LEAVE/WEEK OFF}, for {Date} has been recorded.
