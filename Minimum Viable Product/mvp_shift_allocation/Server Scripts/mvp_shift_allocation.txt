@@ -1,0 +1,13 @@
+name=json.loads(args["name"])
+#frappe.errprint(name);
+# frappe.errprint(args["doctype"]);
+# frappe.errprint(args["status"]);
+for i in range(0,len(name)):
+    n=name[0]
+    d=frappe.get_doc(args["doctype"],name[i])
+    d.db_set("default_shift", args["default_shift"]),
+    d.save();
+    # d.submit();
+# frappe.response["message"]=args
+
+frappe.response["message"]=n

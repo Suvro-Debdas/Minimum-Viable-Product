@@ -1,0 +1,42 @@
+name=json.loads(args["name"])
+
+data=frappe.db.sql("""SELECT e.employee,e.employee_name,e.branch,e.department,GROUP_CONCAT(g.geofenceid) AS geofenceid
+FROM `tabEmployee` e 
+LEFT JOIN `tabGeofence Assignment` g
+ON e.employee=g.parent
+GROUP BY e.employee;
+""",as_dict=True)
+
+for j in data: 
+    
+    # frappe.errprint(j)
+
+    for i in range(0,len(name)):
+        
+        # frappe.errprint(j)
+        # frappe.errprint(args["geofenceid"])
+        
+        if(j.employee == name[i]):
+            
+            if not j.geofenceid:
+
+                n=name[0]
+                d = frappe.get_doc(args["doctype"], name[i])
+                item_row = d.append('geofence', {})
+                item_row.geofenceid = args["geofenceid"]
+                d.save()
+
+            elif(args["geofenceid"] in j.geofenceid != True):
+            
+                frappe.errprint(args["geofenceid"] in j.geofenceid)
+
+            else:
+                
+                n=name[0]
+                d = frappe.get_doc(args["doctype"], name[i])
+                item_row = d.append('geofence', {})
+                item_row.geofenceid = args["geofenceid"]
+                d.save()    
+                # d.submit();
+
+frappe.response["message"]=data

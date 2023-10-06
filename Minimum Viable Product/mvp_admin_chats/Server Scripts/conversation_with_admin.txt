@@ -1,0 +1,44 @@
+# eid=frappe.db.get_value('Employee', {'user_id': frappe.session.user}, ['name'])
+eid = frappe.db.sql("""select name from `tabEmployee` where user_id = %s""",(frappe.session.user),as_dict=1)
+
+employee=json.loads(args["recipient"])
+frappe.errprint(employee)
+
+msg=args["message"]
+frappe.errprint(msg)
+
+message_type=args["message_type"]
+frappe.errprint(message_type)
+
+for i in employee:
+    # frappe.errprint(i)
+    data = frappe.db.sql("""SELECT cell_number FROM `tabEmployee` WHERE employee=%s""",(i),as_dict=True)
+    frappe.errprint(data[0].cell_number)
+    
+    res=frappe.call('gewin_payroll.wa.send_text_message',recipient=data[0].cell_number,message=msg,preview="False")
+    frappe.errprint(res.json())
+    
+    wamid=res.json()['messages'][0]['id']
+    frappe.errprint(wamid)
+    
+    sender=eid[0].name
+    receiver=i
+    content=msg
+    tid=sender + ":" + receiver
+    current_time= frappe.utils.get_datetime(frappe.utils.nowtime())
+    
+    # create a new document
+    
+    doc = frappe.get_doc({
+        'doctype': 'Admin Chats',
+        'recipient': receiver,
+        'sender': sender,
+        'message_type': message_type,
+        'message_id': wamid,
+        'thread_id': tid,
+        'content': content,
+        'timestamp': current_time
+    })
+    doc.insert()
+
+#   frappe.response["message"]=doc

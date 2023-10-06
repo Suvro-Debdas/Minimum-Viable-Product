@@ -1,0 +1,19 @@
+
+# sql_query = """SELECT column_name FROM information_schema.columns WHERE table_name='tabEmployee' AND column_name IN ('first_name', 'last_name','middle_name','salutation','employee_name','employment_type','company','status','gender','date_of_birth','date_of_joining','employee_number','person_to_be_contacted','relation','emergency_phone_number','user_id','create_user_permission','job_applicant','scheduled_confirmation_date','final_confirmation_date','contract_end_date','notice_number_of_days','date_of_retirement','department','designation','reports_to','grade','branch','expense_approver','leave_approver','shift_request_approver','attendance_device_id','holiday_list','default_shift','salary_mode','payroll_cost_center','bank_name','bank_ac_no','health_insurance_provider','health_insurance_no','cell_number','prefered_email','personal_email','unsubscribed','permanent_accommodation_type','permanent_address','prefered_contact_email','company_email','current_accommodation_type','current_address','bio','passport_number','date_of_issue','valid_upto','place_of_issue','marital_status','blood_group','family_background','health_details','resignation_letter_date','relieving_date','reason_for_leaving','leave_encashed','encashment_date','held_on','new_workplace','feedback','lft','rgt','old_parent','_user_tags','_comments','_assign','_liked_by','pan_number','provident_fund_account','ifsc_code','micr_code','emp_age','income_tax_slab','salary_structure','sum_assured','insurance_poc','valid_from','valid_till','health_insurance_card','aadhaar','address_line_1','address_line_2','city_town','state','county','postal_code','esi','auto_repeat','work_state','biometric_attendance_id','agreed_hrpolicy','face_id','face_time','face_gender','face_age','level_1_leave_approver','level_one_leave_approver','country_code','whatsapp_subscription','region');"""
+# results = frappe.db.sql(sql_query, as_dict=True)
+
+# Extract the field names from the results
+# field_names = [result['column_name'] for result in results]
+
+# Print the field names
+# for field_name in field_names:
+#     n=field_name
+
+doctype = 'Employee'
+
+# Execute the SQL query to retrieve labels
+sql_query = f"SELECT fieldname,fieldtype, label,options FROM `tabDocField` WHERE parent = '{doctype}' AND fieldname IN ('first_name', 'last_name','middle_name','salutation','employee_name','employment_type','company','status','gender','employee_number','person_to_be_contacted','relation','emergency_phone_number','user_id','department','designation','reports_to','grade','branch','expense_approver','leave_approver','shift_request_approver','holiday_list','default_shift','salary_mode','payroll_cost_center','permanent_address','company_email','marital_status','blood_group','provident_fund_account','income_tax_slab','salary_structure','address_line_1','address_line_2','city_town','state','county','postal_code','work_state','agreed_hrpolicy','country_code','whatsapp_subscription','region') ORDER BY label ASC;"
+results = frappe.db.sql(sql_query, as_dict=True)
+
+frappe.errprint(results)
+frappe.response["message"]=results

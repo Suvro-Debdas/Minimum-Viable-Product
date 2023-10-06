@@ -1,0 +1,24 @@
+// Hide the default footer & header from the web form
+
+$(document).ready(() => {  
+      
+    // Hiding the default navbar part
+        
+    var e=document.getElementsByTagName("nav")[0];
+    e.parentNode.removeChild(e);
+    
+    // Hiding the default footer part
+    
+    var f=document.getElementsByClassName("web-footer")[0];
+    f.parentNode.removeChild(f);
+    
+});
+
+
+var nav = document.querySelector("nav");  // Deletion of Nav bar
+nav.parentNode.removeChild(nav);
+
+
+var textArea = document.querySelector("textarea");    
+textArea.disabled = true;                            // Making the text area field non editable
+textArea.setAttribute('id','text_area');             // Set the id of the textarea field

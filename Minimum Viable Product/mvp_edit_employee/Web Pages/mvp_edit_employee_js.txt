@@ -1,0 +1,124 @@
+// Hide the default footer & header from the web page
+
+$(document).ready(() => {  
+    
+    //console.log(document.getElementsByTagName("nav")[0].innerHTML);
+      
+    // Hiding the default navbar part
+        
+    // var e=document.getElementsByTagName("nav")[0];
+    // e.parentNode.removeChild(e);
+    
+    // Hiding the default footer part
+    
+    var f=document.getElementsByClassName("web-footer")[0];
+    f.parentNode.removeChild(f);
+    
+}); // document.ready ends here
+
+// Login required
+
+    $(document).ready(()=>{
+ 
+        if (frappe.user_id==="Guest"){
+            
+            window.location.assign("/login");
+            
+        } // if ends here
+    });//end windows.ready
+    
+// Employee information at the Right Corner
+
+    frappe.ready(() => {
+    
+    var url=`/api/resource/Employee/?filters=[["user_id","=","${frappe.user_id}"]]&fields=["image","first_name","department"]`;
+        // console.log(url);
+        
+        fetch(url).then((r)=>r.json()).then((js)=>{//console.log(js);
+        var item=js.data[0];
+        
+        // document.getElementById("nav_user").setAttribute("src",item.image);
+        document.getElementById("nav_name").innerHTML=item.first_name;
+        document.getElementById("de").innerHTML=item.department;
+        //alert("datepicker");
+    }); // fetch url ends here
+            
+    }); // frappe.ready ends here
+
+//  Employee image at the Right Corner
+
+frappe.ready(() => {
+    var url=`/api/resource/Employee/?filters=[["user_id","=","${frappe.user_id}"]]&fields=["image","first_name"]`;
+        // console.log(url);
+        
+    fetch(url).then((r)=>r.json()).then((js)=>{//console.log(js);
+        var item=js.data[0];
+        //console.log(item);
+    
+        if (item.image){
+    
+            var a=document.getElementById("nav_user");
+            a.setAttribute("class","border");
+            a.setAttribute("src",item.image);
+        }
+        else{
+            var sn=item.first_name.substring(0,2).toUpperCase();
+              
+            var b=document.getElementById("nav_user");
+            b.setAttribute("class","border");
+            b.setAttribute("src",generated(sn));
+        }
+        
+        document.getElementById("nav_name").innerHTML=item.first_name;
+    }); //fetch url ends here
+    
+    function generated(name) {
+        let canvas = document.createElement('canvas');
+          
+        canvas.height = 180;
+        canvas.width  = 180;
+          
+        let context = canvas.getContext('2d');
+          
+        //context.drawImage(this.poster, 0, 0)
+        context.fillStyle = "#eef0f2";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+          
+        context.font = "50px Arial";
+        context.fillStyle="black";
+        context.fillText(name, 50, 95);
+          
+        return canvas.toDataURL('image/jpeg');
+    } // "generated" function ends here   
+        
+}); // frappe.ready ends here
+
+
+frappe.ready(() => {
+    
+    var inpt=window.location.search.split('=')[1];
+    
+    localStorage.setItem("employee",inpt);
+    //console.log(localStorage.getItem("employee"));
+    // console.log(phone.split('/')[0]);
+    
+    var inp1=(inpt).split("/")[0].trim();
+    // alert(inp1);
+    var inp2=(inpt).split("/")[1].trim();
+    // alert(inp2);
+    var inp3=(inpt).split("/")[2].trim();
+    // alert(inp3);
+    
+    
+    var iframe=document.getElementById('iframe_one');
+    
+    // iframe.setAttribute("src","https://hr.gewinns.com/app/employee/"+inp1+"%2F"+inp2+"%2F"+inp3);
+   // var itst="/edit-employee?employee="+inpt;
+   
+    var itst="/edit-employee?new=1";
+    iframe.setAttribute("src",encodeURI(itst));
+    
+});// frappe.ready ends here
+
+
+

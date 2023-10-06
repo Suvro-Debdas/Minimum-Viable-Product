@@ -1,0 +1,4 @@
+
+# frappe.msgprint(args['employee'])
+# frappe.msgprint(args['subscription'])
+frappe.db.set_value("Employee",args['employee'],{'whatsapp_subscription':args['subscription']})

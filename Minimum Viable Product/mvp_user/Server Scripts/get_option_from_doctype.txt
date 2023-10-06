@@ -1,0 +1,25 @@
+# doctype = args['doctype']
+
+# frappe.errprint(doctype)
+# # Execute the SQL query to retrieve labels
+# sql_query = f"SELECT * FROM `tabDocField` WHERE parent = '{doctype}'"
+# results = frappe.db.sql(sql_query, as_dict=True)
+
+# frappe.errprint(results)
+# frappe.response["message"]=results
+
+
+# sql_query = "'SELECT * FROM `tab"+ {doctype} + '`"'
+# results = frappe.db.sql(sql_query, as_dict=True)
+
+# frappe.errprint(results)
+
+
+# results=frappe.db.sql("SELECT * FROM `tab"+%s+"`",args["doctype"],as_dict=True)
+
+
+results = frappe.db.sql("SELECT name FROM `tab%s`" % args["doctype"], as_dict=True)
+
+frappe.errprint(results)
+
+frappe.response["message"]=results

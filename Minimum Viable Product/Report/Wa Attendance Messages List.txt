@@ -1,0 +1,14 @@
+SELECT 
+    a.employee as 'Employee Id',b.employee_name as 'Employee Name',
+    DATE(a.timestamp) as 'Date',
+    TIME(a.timestamp) as 'Time',
+    a.status as 'Status',
+    a.reply as 'Reply',
+    TIME(a.reply_time) as 'Reply Time',
+    DATE(a.reply_time) as 'Reply Date'
+    
+FROM `tabWa Attendance Messages` as a
+RIGHT JOIN `tabEmployee` as b
+ON a.employee=b.employee
+WHERE b.status="Active"
+ORDER BY (a.timestamp) DESC ;

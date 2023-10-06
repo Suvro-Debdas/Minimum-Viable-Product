@@ -1,0 +1,10 @@
+SELECT 
+    DATE(a.timestamp) as 'Date',
+    a.status as 'Status',
+    COUNT(a.employee) as 'Count of Employees',
+    GROUP_CONCAT(b.employee_name) as 'Name of the Employees'
+FROM `tabWa Attendance Messages` as a
+INNER JOIN `tabEmployee` as b
+ON a.employee = b.employee
+GROUP BY DATE(a.timestamp),a.status
+ORDER BY DATE(a.timestamp) DESC;

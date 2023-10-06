@@ -1,0 +1,161 @@
+// Hide the default footer & header from the web page
+
+$(document).ready(() => {  
+    
+    //console.log(document.getElementsByTagName("nav")[0].innerHTML);
+      
+    // Hiding the default navbar part
+        
+    // var e=document.getElementsByTagName("nav")[0];
+    // e.parentNode.removeChild(e);
+    
+    // Hiding the default footer part
+    
+    var f=document.getElementsByClassName("web-footer")[0];
+    f.parentNode.removeChild(f);
+});
+
+     frappe.ready(() => {
+        
+        var url=`/api/resource/Employee/?filters=[["user_id","=","${frappe.user_id}"]]&fields=["image","first_name","department","agreed_hrpolicy"]`;
+        // console.log(url);
+        
+        // Agreed to HR policy
+        
+        fetch(url).then((r)=>r.json()).then((js)=>{ // console.log(js);
+            var item=js.data[0];
+            
+            if (frappe.user_id==="Guest"){
+                
+                window.location.assign("/login");
+                
+            } // if ends here
+            
+            // if(item.agreed_hrpolicy != 'Yes'){
+            //     window.location.assign("/hr_policies_without_menu");
+            //     // document.getElementById("last_btn").style.display="none"; 
+            // }
+           
+            //  Employee information at the Right Corner
+                
+            // document.getElementById("nav_user").setAttribute("src",item.image);
+            document.getElementById("nav_name").innerHTML=item.first_name;
+            document.getElementById("de").innerHTML=item.department;
+            
+            //  Employee image at the Right Corner
+            
+            if (item.image){
+        
+                var a=document.getElementById("nav_user");
+                a.setAttribute("class","border");
+                a.setAttribute("src",item.image);
+                
+            } // if ends here
+            
+            else {
+                
+                var sn=item.first_name.substring(0,2).toUpperCase();
+                var b=document.getElementById("nav_user");
+                b.setAttribute("class","border");
+                b.setAttribute("src",generated(sn));
+                
+            } // else ends here
+            
+            document.getElementById("nav_name").innerHTML=item.first_name;
+        
+        }); // fetch.url ends here
+        
+        function generated(name) {
+            
+            let canvas = document.createElement('canvas');
+              
+            canvas.height = 180;
+            canvas.width  = 180;
+              
+            let context = canvas.getContext('2d');
+              
+            //context.drawImage(this.poster, 0, 0)
+            context.fillStyle = "#eef0f2";
+            context.fillRect(0, 0, canvas.width, canvas.height);
+              
+            context.font = "50px Arial";
+            context.fillStyle="black";
+            context.fillText(name, 50, 95);
+              
+            return canvas.toDataURL('image/jpeg');
+            
+        } // function ends here    
+        
+    }); // frasppe.ready ends here
+
+    // Role Specific
+    
+    //  frappe.ready(() => {
+    //     frappe.call({
+    //         method: 'has_role',
+    //         args: {'role_name' : 'HR Manager'},
+    //         callback: function(r){
+    //             // console.log(r);
+    //             if(r.message.length>0){
+                    
+    //                 // console.log('yes');
+    //                 document.getElementById('Efficiency_report_data_hr_re').style.display = 'block';
+    //                 document.getElementById('Capacity_utilisation_report_data_hr_re').style.display = 'block';
+    //                 document.getElementById('attendance_report_for_payroll_processing_without_considering_over_time_data_hr_re').style.display = 'block';
+    //                 document.getElementById('attendance_report_for_payroll_processing_considering_over_time_data_hr_re').style.display = 'block';
+    //                 document.getElementById('muster_roll_report').style.display = 'block';
+    //                 document.getElementById('monthwise_attendance_report').style.display = 'block';
+    //                 // document.getElementById('all_emp_re').style.display = 'block';
+    //             }
+                
+    //             else { 
+                    
+    //                 document.getElementById('Efficiency_report_data_hr_re').style.display = 'none';
+    //                 document.getElementById('Capacity_utilisation_report_data_hr_re').style.display = 'none';
+    //                 document.getElementById('attendance_report_for_payroll_processing_without_considering_over_time_data_hr_re').style.display = 'none';
+    //                 document.getElementById('attendance_report_for_payroll_processing_considering_over_time_data_hr_re').style.display = 'none';
+    //                 document.getElementById('muster_roll_report').style.display = 'none';
+    //                 document.getElementById('monthwise_attendance_report').style.display = 'none';
+    //                 // document.getElementById('all_emp_re').style.display = 'none';
+                    
+    //             } // else ends here
+    //         } // callback ends here
+    //     }); //frappe.call ends here
+    // }); // frappe.ready ends here
+
+    // Login required
+
+    $(document).ready(()=>{
+ 
+        if (frappe.user_id==="Guest"){
+            
+            window.location.assign("/login");
+            
+        } // if ends here
+        
+    });//end windows.ready
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    
+    
+    

@@ -1,0 +1,2503 @@
+    // Hide the default footer & header from the web page
+    
+    frappe.ready(() => { 
+        
+        //console.log(document.getElementsByTagName("nav")[0].innerHTML);
+          
+        // Hiding the default navbar part
+            
+        // var e=document.getElementsByTagName("nav")[0];
+        // e.parentNode.removeChild(e);
+        
+        // Hiding the default footer part
+        
+        // var f=document.getElementsByClassName("web-footer")[0];
+        
+        var f=document.querySelectorAll("footer")[1];
+        // console.log(f)
+        f.parentNode.removeChild(f);
+        
+    }); // document.ready ends here
+
+    //  cheack box select all & deselect all
+    
+    function checkAndMarkChecked(){
+        
+        var allCheckBox=document.getElementById('allCheckBox');
+        
+        if(allCheckBox.checked === true){
+            
+            const checkboxes = document.querySelectorAll('input[class="checkbox_one"]'); // Get all checkboxes on the page
+            
+            checkboxes.forEach((checkbox) => { // Iterate over each checkbox and set its checked property to true
+            
+                checkbox.checked = true;
+            
+            }); // change the value of check box
+            
+        } //if ends here
+        
+        else {
+            
+            const checkboxes = document.querySelectorAll('input[class="checkbox_one"]'); // Get all checkboxes on the page
+        
+            checkboxes.forEach((checkbox) => { // Iterate over each checkbox and set its checked property to true
+                
+                checkbox.checked = false;
+            
+            }); // change the value of check box
+            
+        }//else ends here
+    
+    } // "checkAndMarkChecked" function ends here
+
+    // Employee list 
+
+    frappe.ready(() => {
+        
+        var tbody = document.getElementById("employee_table_body");
+        tbody.innerHTML=" ";
+        var url=`/api/resource/Employee/?filters=[["status","=","Active"]]&fields=["employee","employee_name","department","designation","company","default_shift","branch","holiday_list","date_of_joining","status","user_id","prefered_email"]&limit_page_length=None`;
+
+        fetch(url).then((r)=>r.json()).then((js)=>{//console.log(js);
+        var empid= " ";
+        for (var i=0; i<js.data.length;i++){
+            var item=js.data[i];
+            var row = tbody.insertRow();
+            
+        // create checkbox
+        
+        var cell0=row.insertCell();
+        var x = document.createElement("INPUT");
+        x.setAttribute("type", "checkbox");
+        x.setAttribute("class", "checkbox_one");
+        x.setAttribute("id", item.employee);
+        x.style.height = "15px";
+        x.style.border = "1px solid black";
+        x.style.marginLeft = "8px";
+        x.value=item.employee;
+        cell0.appendChild(x);
+        // cell0.style.borderBottom= "thin solid #00ffff";
+
+        // ID of the Employee
+        
+        var cell1=row.insertCell();
+        cell1.innerHTML=item.employee;
+        cell1.style.textAlign='center';
+        // cell1.style.borderBottom= "thin solid #00ffff";
+        cell1.style.fontSize= '12px';
+        
+        // Name of the Employee Name
+        
+        var cell2=row.insertCell();
+        cell2.innerHTML=item.employee_name;
+        cell2.style.textAlign='center';
+        // cell2.style.borderBottom= "thin solid #00ffff";
+        cell2.style.fontSize= '12px';
+        
+        // Department of the Employee
+        
+        var cell3=row.insertCell();
+        cell3.innerHTML=item.department;
+        cell3.style.textAlign='center';
+        // cell3.style.borderBottom= "thin solid #00ffff";
+        cell3.style.fontSize= '12px';
+        
+        // Designation of the Employee
+        
+        var cell4=row.insertCell();
+        cell4.innerHTML=item.designation;
+        cell4.style.textAlign='center';
+        // cell4.style.borderBottom= "thin solid #00ffff";
+        cell4.style.fontSize= '12px';
+        
+        // Status of the Employee
+        
+        var cell5=row.insertCell();
+        cell5.innerHTML=item.status;
+        cell5.style.textAlign='center';
+        // cell5.style.borderBottom= "thin solid #00ffff";
+        cell5.style.fontSize= '12px';
+        
+        // Button
+        var cell6=row.insertCell();
+        
+        var div = document.createElement("div");
+        div.setAttribute('class','d-flex justify-content-center');
+        
+        var button = document.createElement("a");
+        button.setAttribute("type","button")
+        button.setAttribute('class','button-29');
+        button.style.textDecoration = "none";
+        //  button.style.color = "inherit";
+        button.setAttribute('id',item.employee);
+        
+        
+        empid=item.employee;
+        // console.log(empid);
+        // button.setAttribute('onclick',"editemp('"+empid+"')");
+        
+         var itr="/mvp_edit_employee/?employee="+empid;
+        
+        button.setAttribute('href',encodeURI(itr));
+        button.innerHTML="Edit";
+        
+        div.appendChild(button);
+        cell6.appendChild(div);
+
+    }//for ends here
+    
+    var a = document.getElementById("employee_table").innerHTML;            // Getting the value of Attendance History Table
+    var b = document.getElementById("newTable");                            // Getting the value of New Table
+    b.innerHTML= a;                                                         // Setting the value of Attendance History Table into New Table
+    
+    $.getScript("https://cdn.datatables.net/1.13.2/js/jquery.dataTables.min.js",()=>{
+    $.getScript("https://cdn.datatables.net/1.13.2/js/dataTables.bootstrap5.min.js",()=>{
+        var count=0;
+        $('#employee_table tfoot th').each(function () {
+            
+            count++;
+            
+            if(count==1 || count==7){
+                
+                // $(this).style.width="10px";
+                
+            }//if ends here
+            
+            else{
+                
+                var title = $(this).text();
+                
+                $(this).html('<input type="text" style="width: 100%;" class="text-center align-center" placeholder=" ' + title + '" id="filter' + count + '"/>');
+                
+            }//else ends here
+        
+    }); //each function ends here
+    
+    ltable = $('#employee_table').DataTable({
+        
+        //paging:false,
+        iDisplayLength: -1,
+        aLengthMenu: [[ 25, 50,100, -1], [ 25, 50,100, "All"]],
+        //pagination:false,
+        
+        initComplete: function () {
+            
+            // Apply the search
+            
+            this.api()
+                .columns()
+                .every(function () {
+                    var that = this;
+                    $('input', this.footer()).on('keyup change clear', function () {
+                        if (that.search() !== this.value) {
+                            that.search(this.value).draw();
+                        }
+                    }); //on function ends here
+                });// every function ends here
+                
+                // var filter = document.getElementById("employee_table_filter");  // Deletion of filter 
+                // filter.parentNode.removeChild(filter);
+                
+                // var length = document.getElementById("employee_table_length");  // Deletion of Pagination        
+                // length.parentNode.removeChild(length);
+                
+                var Employee_Code = document.getElementById('Employee_Code');
+                var Employee_Name = document.getElementById('Employee_Name');
+                var Department = document.getElementById('Department');
+                var Designation = document.getElementById('Designation');
+                var Status = document.getElementById('Status');
+                var check = document.getElementById('check');
+                var edit_btn = document.getElementById('edit_btn');
+                
+                // for hide asc ans dese  syntax  from  1st and last  column  
+            
+                check.classList.remove('sorting_asc');
+                check.classList.remove('sorting_desc');
+                check.classList.remove('sorting');
+                // check.removeAttribute('aria-label');
+                
+                edit_btn.classList.remove('sorting_asc');
+                edit_btn.classList.remove('sorting');
+                edit_btn.classList.remove('sorting_desc');
+                // edit_btn.removeAttribute('aria-label');
+
+                if(Employee_Code.classList.contains('sorting_desc') == true || Employee_Code.classList.contains('sorting_asc') == true || 
+                    Employee_Name.classList.contains('sorting_desc') == true || Employee_Name.classList.contains('sorting_asc') == true || 
+                    Department.classList.contains('sorting_desc') == true || Department.classList.contains('sorting_asc') == true ||
+                    Designation.classList.contains('sorting_desc') == true || Designation.classList.contains('sorting_asc') == true ||
+                    Status.classList.contains('sorting_desc') == true || Status.classList.contains('sorting_asc') == true){
+                    
+                    check.classList.remove('sorting_asc');
+                    check.classList.remove('sorting_desc');
+                    check.classList.remove('sorting');
+                    // check.removeAttribute('aria-label');
+                    edit_btn.classList.remove('sorting_asc');
+                    edit_btn.classList.remove('sorting');
+                    edit_btn.classList.remove('sorting_desc');
+                
+                
+                } // if ends here
+
+                var info = document.getElementById("employee_table_info");                             // Basic styling of pagination part 03
+                info.setAttribute('class','p-t-20 p-b-20 p-l-20 float-left');
+                
+                var paginate = document.getElementById("employee_table_paginate");                      // Basic styling of pagination part 02
+                paginate.setAttribute('class','p-t-20 p-b-20');
+                
+                // Hide the text of the pagination dropdown 
+                    
+                    // Get the div element by its id
+                    
+                    var divElement = document.getElementById('employee_table_length');
+                    
+                    // Get the label element inside the div
+                    
+                    var labelElement = divElement.querySelector('label');
+                    
+                    // Check if the label element exists
+                    
+                    if (labelElement) {
+                        
+                        // Get the select element within the label
+                      
+                        var selectElement = labelElement.querySelector('select');
+                        selectElement.setAttribute("id","select_value_length");
+                    
+                        // Check if the select element exists
+                      
+                        if (selectElement) {
+                          
+                            // Iterate over child nodes of the label
+                        
+                            for (var i = 0; i < labelElement.childNodes.length; i++) {
+                            
+                                var childNode = labelElement.childNodes[i];
+                    
+                                // Check if the child node is not the select element
+                          
+                                if (childNode !== selectElement) {
+                              
+                                    // Remove the text content of the child node
+                            
+                                    labelElement.removeChild(childNode);
+                                    
+                                } // if ends here
+                                
+                                // Set the height value
+                          
+                                if (selectElement) {
+                            
+                                    selectElement.style.height = '38px'; 
+                                    
+                                } // if ends here
+                            
+                            } // for loop ends here
+                            
+                       } // if ends here
+                       
+                    } // if ends here
+                    
+                    // Hide the text for the universal search bar
+                    
+                    // Get the div element by its id
+                    
+                    var divElementOne = document.getElementById('employee_table_filter');
+                    
+                    // Get the label element inside the div
+                    
+                    var labelElement = divElementOne.querySelector('label');
+                    
+                    // Check if the label element exists
+                    
+                    if (labelElement) {
+                        
+                        // Get the input element within the label
+                      
+                        var inputElement = labelElement.querySelector('input');
+                    
+                        // Check if the input element exists
+                  
+                        if (inputElement) {
+                      
+                            // Clear the text content of the label while preserving the input element
+                    
+                            labelElement.firstChild.nodeValue = '';
+                    
+                        } // if ends here
+                            
+                        // Set the placeholder value
+                        
+                        if (inputElement) {
+                            
+                            inputElement.placeholder = 'Search Here';
+                          
+                        } // if ends here
+                        
+                        // Set the height value
+                        
+                        if (inputElement) {
+                            
+                            inputElement.style.height = '38px'; 
+                          
+                        } // if ends here
+
+                    } // if ends here
+                    
+                    // Get the id of the data table pagination
+                    
+                    var datatablePagination = document.getElementById('datatable_pagination');
+                    
+                    // Get the id of the data table search bar
+                    
+                    var datatableSearchBar = document.getElementById('datatable_searchbar');
+                    
+                    // Append the data table pagination into the main div
+                
+                    datatablePagination.appendChild(divElement);
+                    
+                    // Append the data table search bar into the main div
+                    
+                    datatableSearchBar.appendChild(divElementOne);
+
+        }, // initComplete ends here
+    }); // DataTable ends here
+    });//end of bootstrap
+    });//end of datatable
+    });//fetch url ends here
+}); // frappe.ready ends here
+
+    // Login required
+
+    $(document).ready(()=>{
+ 
+        if (frappe.user_id==="Guest"){
+            
+            window.location.assign("/login");
+            
+        } // if ends here
+        
+    });//end windows.ready
+    
+    // Employee information at the Right Corner
+
+    frappe.ready(() => {
+    
+    var url=`/api/resource/Employee/?filters=[["user_id","=","${frappe.user_id}"]]&fields=["image","first_name","department"]`;
+        // console.log(url);
+        
+        fetch(url).then((r)=>r.json()).then((js)=>{
+            
+            var item=js.data[0];
+            // document.getElementById("nav_user").setAttribute("src",item.image);
+            document.getElementById("nav_name").innerHTML=item.first_name;
+            document.getElementById("de").innerHTML=item.department;
+            
+        }); // fetch url ends here
+            
+    }); // frappe.ready ends here
+
+    //  Employee image at the Right Corner
+
+    frappe.ready(() => {
+        
+        var url=`/api/resource/Employee/?filters=[["user_id","=","${frappe.user_id}"]]&fields=["image","first_name"]`;
+
+        fetch(url).then((r)=>r.json()).then((js)=>{//console.log(js);
+            var item=js.data[0];
+
+            if (item.image){
+        
+                var a=document.getElementById("nav_user");
+                a.setAttribute("class","border");
+                a.setAttribute("src",item.image);
+                
+            } // if ends here
+            
+            else {
+                
+                var sn=item.first_name.substring(0,2).toUpperCase();
+                var b=document.getElementById("nav_user");
+                b.setAttribute("class","border");
+                b.setAttribute("src",generated(sn));
+                
+            } // else ends here
+            
+            document.getElementById("nav_name").innerHTML=item.first_name;
+            
+        });  // fetch url ends here
+        
+        function generated(name) {
+            
+            let canvas = document.createElement('canvas');
+              
+            canvas.height = 180;
+            canvas.width  = 180;
+              
+            let context = canvas.getContext('2d');
+              
+            //context.drawImage(this.poster, 0, 0)
+            context.fillStyle = "#eef0f2";
+            context.fillRect(0, 0, canvas.width, canvas.height);
+              
+            context.font = "50px Arial";
+            context.fillStyle="black";
+            context.fillText(name, 50, 95);
+              
+            return canvas.toDataURL('image/jpeg');
+            
+        } // "generated"  function ends here 
+            
+    });// frappe.ready ends here
+
+    // Role Specific
+
+    // frappe.ready(() =>{   
+        
+    //     frappe.call({
+            
+    //         method: 'has_role',
+    //         args: {'role_name' : 'HR Manager'},
+    //         callback: function(r){
+    //             // console.log(r);
+    //             if(r.message.length>0){
+    //                 console.log('yes');
+    //                 document.getElementById('Efficiency_report_data_hr_re').style.display = 'block';
+    //                 document.getElementById('Capacity_utilisation_report_data_hr_re').style.display = 'block';
+    //                 document.getElementById('attendance_report_for_payroll_processing_without_considering_over_time_data_hr_re').style.display = 'block';
+    //                 document.getElementById('attendance_report_for_payroll_processing_considering_over_time_data_hr_re').style.display = 'block';
+    //                 document.getElementById('muster_roll_report').style.display = 'block';
+    //                 document.getElementById('monthwise_attendance_report').style.display = 'block';
+    //                 // document.getElementById('all_emp_re').style.display = 'block';
+    //             }//if ends here
+    //             else{
+    //                  document.getElementById('Efficiency_report_data_hr_re').style.display = 'none';
+    //                  document.getElementById('Capacity_utilisation_report_data_hr_re').style.display = 'none';
+    //                  document.getElementById('attendance_report_for_payroll_processing_without_considering_over_time_data_hr_re').style.display = 'none';
+    //                  document.getElementById('attendance_report_for_payroll_processing_considering_over_time_data_hr_re').style.display = 'none';
+    //                 document.getElementById('muster_roll_report').style.display = 'none';
+    //                 document.getElementById('monthwise_attendance_report').style.display = 'none';
+    //                 //  document.getElementById('all_emp_re').style.display = 'none';
+                    
+    //             }//else ends here
+    //         } // callback ends here
+    //     }); //frappe.call ends here
+            
+    // }); // frappe.ready ends here    
+ 
+    // Show modal for "Add Employee"
+    
+    function modalshow(){
+        
+        $('#myModal').modal('show');
+        var iframe_one=document.getElementById('iframe_one'); 
+        // console.log(iframe_one);
+        var iframewindow_one=iframe_one.contentWindow;
+        // console.log(iframewindow_one);
+        var iframedocument_one=iframe_one.contentDocument;
+        // console.log(iframedocument_one);
+        var button = iframedocument_one.querySelector("button[class='btn btn-primary btn-sm ml-2']"); 
+        // console.log(button);
+        button.setAttribute('id','input_doc_one'); 
+        var inputElement_one = iframedocument_one.querySelector("button[id='input_doc_one']");
+        // console.log(inputElement_one);
+        // inputElement_one.setAttribute('onclick','hideModal()'); 
+        
+    }// "modalshow"  function ends here
+
+    // Hide modal for "Add Employee"
+    
+    function hideModal(){
+        
+        $('#myModal').modal('hide');
+      
+    } // "hideModal" function ends 
+
+    // Show Modal for "Upload Employee"
+    
+    function modalshow_two(){
+        
+        $('#myModal_two').modal('show');
+        var iframe=document.getElementById('targetiframe');    
+        var iframewindow=iframe.contentWindow;
+        var iframedocument=iframe.contentDocument;
+    
+        // Hide Nav Bar    
+        
+        var input_one = iframedocument.querySelector("div[class='container']");
+        console.log(input_one);
+        input_one.style.display = "none";
+        
+        // Set Employee value in doctype field  
+    
+        var input = iframedocument.querySelector("input[class='input-with-feedback form-control bold']");    
+        input.setAttribute('id','input_doc'); 
+        var inputElement = iframedocument.querySelector("input[id='input_doc']");
+        
+        // inputElement.value="Employee";
+        // inputElement.setAttribute('value','Employee'); 
+        // inputElement.val('Employee');
+        // inputElement.disabled = true;  
+        
+        // hide searchbar
+        
+        // var input_one = iframedocument.querySelector("input[id='navbar-search']");
+        // console.log(iframedocument);
+        var button=iframedocument.querySelector("button[class='btn btn-primary btn-sm primary-action']");
+        // console.log(button);
+        button.setAttribute('onclick','hideModal_two()');
+        
+    } //"modalshow_two" function ends here
+
+    //  Hide modal for  "upload employee"
+    
+    function hideModal_two(){
+        
+      $('#myModal_two').modal('hide');
+      
+    } // "hideModal_two" function ends here
+
+    // Show modal form Bulk Edit 
+    
+    function modalshow_three(){
+        
+        $('#myModal_three').modal('show');
+        
+        const table_one = document.getElementById("employee_table");
+        const applications_one = table_one.querySelectorAll('input[class="checkbox_one"]:checked');
+        var values_one = [];
+        
+        for (var i = 0; i < applications_one.length; i++) {
+            
+            values_one.push(applications_one[i].value);
+            
+        } // for ends here
+
+        // Set text in Submit Button 
+        
+        var st=document.getElementById('submitbutton');
+        st.innerHTML="Update "+values_one.length+" Records"
+        
+        // create option in first selected type
+    
+        frappe.call({method:'get_all_field_name_of_employee',
+        
+            callback : (res)=>{
+                
+                var select = document.getElementById('selectBox');
+                
+                for (var i=0; i<res.message.length;i++){
+                    
+                    var item=res.message[i];
+                    var el = document.createElement("option");
+                    el.innerHTML = item.label;
+                    el.setAttribute("value",item.fieldname+"-"+item.fieldtype)
+                    select.appendChild(el);
+                
+                } // for loop ends here
+            } // Callback ends here
+        }); // Frappe.call ends here
+    } // "modalshow_ three" function ends here
+
+    // Data Fetch in Bulk Edit field
+        
+    function showvalue() {
+          
+        //   second  div where  new field create based  on field type
+        
+        var div = document.getElementById('value_div');
+        var st = document.getElementById('selectBox');
+        var selectedValueOne = st.options[st.selectedIndex].value;
+
+        // for field type 
+        
+        var valinput=(selectedValueOne).split("-")[1].trim();
+        
+        //  for field name 
+        
+        var valinput1=(selectedValueOne).split("-")[0].trim();
+
+    // Selected type data for Bulk Edit 
+        
+        if(valinput=="Data"){
+            
+            div.innerHTML=" ";
+            var input=document.createElement("input");
+            input.setAttribute("type","data");
+            input.setAttribute("class","form-control");
+            input.setAttribute("id","savevalue");
+            div.appendChild(input);
+
+        }// if ends here
+    
+    // Selected type data for Bulk Edit 
+       
+        else if(valinput=="Select"){
+            
+            div.innerHTML=" ";
+            var select_one=document.createElement("select");
+            select_one.setAttribute("class","form-select digits");
+            select_one.setAttribute("id","savevalue");
+                frappe.call({method:'get_all_value_for_fieldtype_option',
+                
+                    args:{
+                        
+                        field_name:valinput1,
+                        
+                    },
+                    
+                    callback : (r)=>{
+
+                        var ht=r.message[0].options;
+                        // console.log(ht)
+                        // console.log(ht.length)
+                        // for(var d=0;d<ht.length;d++){
+                        const myArray = ht.split("\n");
+                        for(var f=1;f<myArray.length;f++){
+
+                            var option_one = document.createElement("option");
+                            option_one.innerHTML = myArray[f];
+                            option_one.setAttribute("value",myArray[f]);
+                            select_one.appendChild(option_one);
+                            
+                        }// for ends  here
+                    } // call back ends here
+                }); // frappe.call ends here
+            
+            // create box and its option if needed 
+            
+            div.appendChild(select_one)
+            
+        } // else if ends here
+            
+    // Selected type link for Bulk Edit     
+ 
+        else if(valinput=="Link"){
+            
+            div.innerHTML=" ";
+            var select_three=document.createElement("select");
+            select_three.setAttribute("class","form-select digits");
+            select_three.setAttribute("id","savevalue");
+                frappe.call({method:'get_option_for_fieldname',
+                
+                    args:{
+                        
+                        field_name:valinput1,
+                        
+                    },
+                    
+                    callback : (r)=>{
+                        
+                    var ht=r.message[0].options;
+                    // console.log(ht);
+                    frappe.call({method:'get_option_from_doctype',
+                        args:{
+                            doctype:ht,
+                        },
+                        callback : (r)=>{
+                            
+                            for(var d=0;d<r.message.length;d++){
+                                
+                                var optitem=r.message[d];
+                                var option_three = document.createElement("option");
+                                option_three.innerHTML = optitem.name;
+                                option_three.setAttribute("value",optitem.name);
+                                select_three.appendChild(option_three);
+                                
+                            } //for ens here
+                        } // callback ends here
+                    }); //frappe.call ends here
+                }// callback ends here
+            }); // frappe.call ends here
+            
+            // create box and its option if needed 
+            
+            div.appendChild(select_three)
+     
+        } //  else if ends here
+    
+            // else if(valinput=="Date"){
+            //     $.getScript("../assets/hr/js/datepicker/date-picker/datepicker.js",()=>{
+            //     $.getScript("../assets/hr/js/datepicker/date-picker/datepicker.en.js",()=>{
+            //         var input_three=document.createElement("input");
+            //             input_three.setAttribute("class","datepicker-here form-control");
+            //             input_three.setAttribute("type","text");
+            //             input_three.setAttribute("data-language","en");
+            //             input_three.setAttribute("placeholder","DD/MM/YYYY"); 
+            //             input_three.setAttribute("autocomplete","off");
+            //             div.appendChild(input_three)
+            //     }); // second cdn ends here
+            //     }); // first cdn ends here
+            
+        // }
+    
+    } // "show_value" function ends here
+
+    // Save value for bulk edit 
+        
+    function submitRequest(){
+        
+        var stt = document.getElementById('selectBox');
+        var selectedValueOne1 = stt.options[stt.selectedIndex].value;
+        
+        // for field type
+        
+        var valinputt=(selectedValueOne1).split("-")[1].trim();
+        
+        // for field name
+        
+        var valinputt1=(selectedValueOne1).split("-")[0].trim();
+
+        // for selected employee list
+        
+        const table = document.getElementById("employee_table");
+        const applications = table.querySelectorAll('input[class="checkbox_one"]:checked');
+        var values = [];
+        
+        for (var i = 0; i < applications.length; i++) {
+            
+            values.push(applications[i].value);
+            
+        }//for ends here
+        
+        frappe.call({method:'update_employee_value',
+        
+            args: {doctype:"Employee",
+        	    name: values,
+        	    fieldname: valinputt1,
+        	    fieldvalue : $('#savevalue').val(),
+    	    },
+    	    
+    	    callback : (r)=>{ 
+
+    	        $.getScript("https://jsuites.net/v4/jsuites.js",()=>{
+                $.getScript("../assets/hr/js/notify/bootstrap-notify.min.js",()=>{
+                $.getScript("../assets/hr/js/notify/notify-script.js",()=>{
+                
+                // Create a popup element
+                
+                var popup = document.createElement('div');
+                popup.className = 'popup';
+                popup.textContent = 'Updated Successfully';
+                
+                // Add the popup element to the document
+                
+                document.body.appendChild(popup);
+                
+                // Set a timer to remove the popup after 3 seconds
+                
+                setTimeout(function() {
+                    
+                    popup.parentNode.removeChild(popup);
+                    AutoRefresh();
+                    
+                }, 3000);  //  set timeout function ends here
+                }); //3rd getScript Ends here
+                }); //2nd getScript Ends here
+                }); //1st getScript Ends here
+    	   
+    	    hideModal_three()
+    	    
+    	    },// call back ends here
+        }); // frappe.call ends here
+    
+    }  //"submitRequest " function ends here 
+
+    // Hide modal For "Bulk Edit"
+    
+    function hideModal_three(){
+        
+        $('#myModal_three').modal('hide');
+      
+    }// "hideModal_three" function ends here
+
+    // Hide modal For "Single Edit"
+    
+    function hideModal_four(){
+        
+        $('#myModal_four').modal('hide');
+      
+    }//"hideModal_four" function ends here
+
+    // For Refresh the Page
+    
+    function AutoRefresh(){
+        
+        setTimeout("location.reload(true);");
+        
+    }//"AutoRefresh" function ends here
+
+    // Check List Dropdown
+     
+    //  frappe.ready(() => {
+    //     var url=`/api/resource/Employee/?fields=${JSON.stringify(["employee","employee_name"])}`;
+    //     // console.log(url);
+    //     fetch(url).then((r)=>r.json()).then((js)=>{//console.log(js);
+    //     var dlist = document.getElementById('emp_list');
+        
+    //         for (var i=0; i<js.data.length;i++){
+    //             var item=js.data[i];
+    //             var el = document.createElement("option");
+    //             el.setAttribute("values",item.employee);
+    //             el.innerHTML = item.employee_name;
+    //             dlist.appendChild(el);
+    //         } // for ends here
+            
+    //     }); // fetch url ends here
+    
+    //     const input = document.getElementById('searchemp');
+    //     input.addEventListener('input',updateVal);
+            
+    //     function updateVal(e){
+    //         var options = document.getElementById('emp_list').options;
+    //         var value = e.target.value;
+    //         for( var i = 0; i < options.length; i ++){
+    //             if (options[i].value === value){
+    //                 // alert(value);
+    //                 Employee(options[i].getAttribute('values'))
+    //             } // If Statement
+    //         }// For Loop
+            
+    //     }// "updateVal" function end here
+        
+    //     function Employee(eid){
+    //         // alert(eid);
+    //         frappe.call({
+    //         method: 'check_list_items',
+    //         args: {'employee' : eid},
+    //         callback : function(r){
+            
+    //         var dlist = document.getElementById('emp_lists');
+    //         var ul = document.getElementById("emp_dtls");
+    //         var item = r.message[0];
+    //         // console.log(item);
+    //         if (item.emergency_phone_number === null){
+        
+    //             document.getElementById("emer_cont_num").checked = false;
+    //             // document.getElementById("emer_cont_num").disabled = true;
+    //         } 
+    //         else {
+    //             document.getElementById("emer_cont_num").checked = true;
+    //             // document.getElementById("emer_cont_num").disabled = true;
+    //         }
+    //         if (item.person_to_be_contacted === null){
+    //             document.getElementById("emer_cont_name").checked = false;
+    //             // document.getElementById("emer_cont_name").disabled = true;
+    //         } 
+    //         else {
+    //             document.getElementById("emer_cont_name").checked = true;
+    //             // document.getElementById("emer_cont_name").disabled = true;
+    //         }
+    //         if (item.cell_number === null){
+    //             document.getElementById("cont_num").checked = false;
+    //             // document.getElementById("cont_num").disabled = true;
+    //         } 
+    //         else {
+    //             document.getElementById("cont_num").checked = true;
+    //             // document.getElementById("cont_num").disabled = true;
+    //         }
+    //         if (item.personal_email === null){
+    //             document.getElementById("pers_email").checked = false;
+    //             // document.getElementById("pers_email").disabled = true;
+    //         } 
+    //         else {
+    //             document.getElementById("pers_email").checked = true;
+    //             // document.getElementById("pers_email").disabled = true;
+    //         }
+    //         if (item.prefered_email === null){
+    //             document.getElementById("prfrd_email").checked = false;
+    //             // document.getElementById("prfrd_email").disabled = true;
+    //         } 
+    //         else {
+    //             document.getElementById("prfrd_email").checked = true;
+    //             // document.getElementById("prfrd_email").disabled = true;
+    //         }
+    //         if (item.permanent_address === null){
+    //             document.getElementById("per_add").checked = false;
+    //             // document.getElementById("per_add").disabled = true;
+    //         } 
+    //         else {
+    //             document.getElementById("per_add").checked = true;
+    //             // document.getElementById("per_add").disabled = true;
+    //         }
+    //         if (item.current_address === null){
+    //             document.getElementById("curr_add").checked = false;
+    //             // document.getElementById("curr_add").disabled = true;
+    //         }
+    //         else {
+    //             document.getElementById("curr_add").checked = true;
+    //             // document.getElementById("curr_add").disabled = true;
+    //         }
+    //         if (item.passport_number === null){
+    //             document.getElementById("pass_num").checked = false;
+    //             // document.getElementById("pass_num").disabled = true;
+    //         }
+    //         else {
+    //             document.getElementById("pass_num").checked = true;
+    //             // document.getElementById("pass_num").disabled = true;
+    //         }
+    //         if (item.date_of_issue === null){
+    //             document.getElementById("date_of_issue").checked = false;
+    //             // document.getElementById("date_of_issue").disabled = true;
+    //         }
+    //         else {
+    //             document.getElementById("date_of_issue").checked = true;
+    //             // document.getElementById("date_of_issue").disabled = true;
+    //         }
+    //         if (item.valid_upto === null){
+    //             document.getElementById("valid_upto").checked = false;
+    //             // document.getElementById("valid_upto").disabled = true;
+    //         }
+    //         else {
+    //             document.getElementById("valid_upto").checked = true;
+    //             // document.getElementById("valid_upto").disabled = true;
+    //         }
+    //         if (item.place_of_issue === null){
+    //             document.getElementById("place_of_issue").checked = false;
+    //             // document.getElementById("place_of_issue").disabled = true;
+    //         }
+    //         else {
+    //             document.getElementById("place_of_issue").checked = true;
+    //             // document.getElementById("place_of_issue").disabled = true;
+    //         }
+    //         if (item.marital_status === null){
+    //             document.getElementById("mar_status").checked = false;
+    //             // document.getElementById("mar_status").disabled = true;
+    //         }
+    //         else {
+    //             document.getElementById("mar_status").checked = true;
+    //             // document.getElementById("mar_status").disabled = true;
+    //         }
+    //         if (item.blood_group === null){
+    //             document.getElementById("blood_group").checked = false;
+    //             // document.getElementById("blood_group").disabled = true;
+    //         }
+    //         else {
+    //             document.getElementById("blood_group").checked = true;
+    //             // document.getElementById("blood_group").disabled = true;
+    //         }
+    //         if (item.family_background === null){
+    //             document.getElementById("fam_back").checked = false;
+    //             // document.getElementById("fam_back").disabled = true;
+    //         }
+    //         else {
+    //             document.getElementById("fam_back").checked = true;
+    //             // document.getElementById("fam_back").disabled = true;
+    //         }
+    //         if (item.health_details === null){
+    //             document.getElementById("hlth_dtl").checked = false;
+    //             // document.getElementById("hlth_dtl").disabled = true;
+    //         }
+    //         else {
+    //             document.getElementById("hlth_dtl").checked = true;
+    //             // document.getElementById("hlth_dtl").disabled = true;
+    //         }
+    //         if (item.educational_details === 0){
+    //             document.getElementById("edu_dtl").checked = false;
+    //             // document.getElementById("edu_dtl").disabled = true;
+    //         }
+    //         else {
+    //             document.getElementById("edu_dtl").checked = true;
+    //             // document.getElementById("edu_dtl").disabled = true;
+    //         }
+    //         if (item.previouswork_experience === 0){
+    //             document.getElementById("exwe_dtl").checked = false;
+    //             // document.getElementById("exwe_dtl").disabled = true;
+    //         }
+    //         else {
+    //             document.getElementById("exwe_dtl").checked = true;
+    //             // document.getElementById("exwe_dtl").disabled = true;
+    //         }
+    //         if (item.currentwork_experience === 0){
+    //             document.getElementById("iwe_dtl").checked = false;
+    //             // document.getElementById("iwe_dtl").disabled = true;
+    //         }
+    //         else {
+    //             document.getElementById("iwe_dtl").checked = true;
+    //             // document.getElementById("iwe_dtl").disabled = true;
+    //         }
+    //         } // second function ends here
+    
+    //     }); // frappe.call ends here
+        
+    // } // "Employee" function ends here
+            
+    // }); // frappe.ready ends here
+    
+    // Show Modal for "Department Creation"
+    
+    function modalshow_Department(){
+        
+        $('#myModal_dept').modal('show');
+    
+    } //"modalshow_Department" function ends here
+    
+    // Hide Modal for "Department Creation"
+    
+    function hideModal_dept(){
+        
+        $('#myModal_dept').modal('hide');
+    
+    } //"hideModal_dept" function ends here
+    
+    // Show Modal for "Designation Creation"
+    
+    function modalshow_Designation(){
+        
+        $('#myModal_desig').modal('show');
+    
+    } //"modalshow_Designation" function ends here
+    
+    // Hide Modal for "Designation Creation"
+    
+    function hideModal_desig(){
+        
+        $('#myModal_desig').modal('hide');
+    
+    } //"hideModal_desig" function ends here
+
+    //  Breadcrumbs for Employee
+    
+    function bdfun(){
+        
+        document.getElementById("bd").innerHTML="Employee";
+        document.getElementById("add_employee").style.display="block";
+        document.getElementById("upload_employee").style.display="block";
+        document.getElementById("edit_employee").style.display="block";
+        
+    } // "bdfun" function ends here
+
+    //  Breadcrumbs for Onbording Checklist
+    
+    function bdfun1(){
+        
+        document.getElementById("bd").innerHTML="Onbording Checklist";
+        document.getElementById("add_employee").style.display="none";
+        document.getElementById("upload_employee").style.display="none";
+        document.getElementById("edit_employee").style.display="none";
+        
+        showEMPdata() // Display of employee Name in the dropdown
+        
+        dataShow("All")   //On reload Show all Employee Data in Checklist Table
+        
+    } // "bdfun1" function ends here
+
+    // Switiching between downloading options
+
+    function changeFunc() {
+        
+        var selectBoxx = document.getElementById("selectBoxx");
+        var selectedValue = selectBoxx.options[selectBoxx.selectedIndex].value;
+        
+        if(selectedValue=="checkAndDownloadInExcel"){
+            
+          checkAndDownloadInExcel(); // calling the funtion to download the report in excel format
+          
+        } // else ends here
+        
+        else if(selectedValue=="downloadCSV"){
+            
+            downloadCSV(); // calling the funtion to download the report in csv format
+            
+        } // else ends here
+        
+        else if(selectedValue=="checkAndDownloadInPDF"){
+            
+            checkAndDownloadInPDF(); // calling the funtion to download the report in pdf format
+            
+        } // else ends here
+        
+    } // function ends here
+
+    // Create table without filter 
+    
+    function createNewTable(){
+        
+        var newTable = document.getElementById('newTableOne'); // Create a new table
+        
+        var existingTable = document.getElementById('newTable'); // Get reference to the existing table
+        
+        var selectedColumns = [1,2,3,4,5]; // Get the column indices you want to include in the new table
+        
+        for (var i = 0; i < existingTable.rows.length; i++) { // Iterate over the rows in the existing table
+        
+            var newRow = document.createElement('tr'); // Create a new row for the new table
+            
+            var existingRow = existingTable.rows[i]; // Get the corresponding row from the existing table
+            
+        for (var j = 0; j < selectedColumns.length; j++) { // Iterate over the selected columns
+
+            var columnIndex = selectedColumns[j];
+            var existingCell = existingRow.cells[columnIndex]; // Get the corresponding cell from the existing row
+    
+            var newCell = document.createElement('td'); // Create a new cell for the new table
+            newCell.innerHTML = existingCell.innerHTML; // Copy the data from the existing cell
+            
+            newRow.appendChild(newCell); // Append the new cell to the new row
+            
+        } // for loop for j ends here
+        
+            newTable.appendChild(newRow); // Append the new row to the new table
+            
+        } // for loop for i ends here
+        
+    } // function ends here
+    
+    // Create table for apply filter
+    
+    function createNewTable_one(){
+
+        var newTable = document.getElementById('newTableTwo'); // Create a new table 
+        // console.log(newTable);
+    
+        var existingTable = document.getElementById('employee_table'); // Get reference to the existing table
+        // console.log(existingTable);
+    
+        var selectedColumns = [1,2,3,4,5]; // Get the column indices you want to include in the new table
+    
+        for (var i = 0; i < existingTable.rows.length; i++) { // Iterate over the rows in the existing table
+        
+            var newRow = document.createElement('tr'); // Create a new row for the new table
+            var existingRow = existingTable.rows[i]; // Get the corresponding row from the existing table
+            
+        for (var j = 0; j < selectedColumns.length; j++) { // Iterate over the selected columns
+        
+            var columnIndex = selectedColumns[j];
+            var existingCell = existingRow.cells[columnIndex]; // Get the corresponding cell from the existing row
+    
+            var newCell = document.createElement('td'); // Create a new cell for the new table
+            newCell.innerHTML = existingCell.innerHTML; // Copy the data from the existing cell
+            
+            newRow.appendChild(newCell); // Append the new cell to the new row
+            
+        } // for loop for j ends here
+        
+            newTable.appendChild(newRow); // Append the new row to the new table
+            
+        } // for loop for i ends here
+        
+    } // function ends here
+  
+    // Download in CSV format
+      
+    function downloadCSV() {
+    
+        // Get the DataTable instance
+        
+        var table = $('#employee_table').DataTable();
+    
+        // Get the filtered data from the DataTable
+        
+        var filteredData = table.rows({ search: 'applied' }).data();
+    
+        // Get the column names
+        
+        var columns = table.columns().header().toArray().map(function (th) {
+            
+            return th.textContent;
+            
+        });
+    
+        // Create the CSV content
+        
+        var csvContent = columns.slice(1, -1).join(',') + '\n'; // Remove first and last column from columns array
+        filteredData.each(function (rowData) {
+            
+            csvContent += rowData.slice(1, -1).join(',') + '\n'; // Remove first and last cell from rowData
+            
+        });
+    
+        // Create a temporary download link
+        
+        var link = document.createElement('a');
+        link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+        link.download = 'Employee_information.csv';
+    
+        // Trigger the download
+        
+        link.click();
+        
+    } //"downloadCSV" function ends  here
+
+    // Export to Excel file with Applied Filter (Table Filter)
+    
+    function exportToExcelWithTableFilter() {
+        
+        createNewTable_one()
+        
+        var table = document.getElementById("newTableTwo");
+    
+        var rowCount = table.rows.length;
+    
+        table.deleteRow(rowCount - 1);
+    
+        var workbook = XLSX.utils.table_to_book(table, { sheet: "Sheet 1" });
+    
+        var excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    
+        saveAsExcelWithTableFilter(excelBuffer, "Employee_information.xlsx");
+    
+        document.body.removeChild(table); // Remove the newly generated table from the DOM
+      
+    } // "exportToExcelWithTableFilter" function ends here
+
+    // Save the Excel file with Applied Filter (Table Filter)
+    
+    function saveAsExcelWithTableFilter(buffer, filename) {
+        
+      var blob = new Blob([buffer], { type: 'application/octet-stream' });
+    
+      var url = window.URL.createObjectURL(blob);
+    
+      var link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+    
+      document.body.appendChild(link);
+    
+      link.click();
+    
+      document.body.removeChild(link);
+      
+    } // "saveAsExcelWithTableFilter" function ends here
+
+    // Export to Excel file without Applied Filter
+    
+    function exportToExcel() {
+        
+        createNewTable() // calling the function to generate a new table
+        
+        var table = document.getElementById("newTableOne");
+        
+        // var table = document.getElementById("employee_table");
+        
+        var rowCount = table.rows.length;
+        
+        table.deleteRow(rowCount -1);
+        
+        var workbook = XLSX.utils.table_to_book(table, { sheet: "Sheet 1" });
+        
+        var excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+        
+        saveAsExcel(excelBuffer, "Employee_information.xlsx");
+        
+        document.body.removeChild(table); // Remove the newly generated table from the DOM
+        
+    } // "exportToExcel" function ends here
+
+    // Save the Excel file without Applied Filter
+
+    function saveAsExcel(buffer, filename) {
+        
+        var blob = new Blob([buffer], {type: 'application/octet-stream'});
+        
+        var url = window.URL.createObjectURL(blob);
+        
+        var link = document.createElement('a');
+        
+        link.href = url;
+        
+        link.setAttribute('download', filename);
+        
+        document.body.appendChild(link);
+        
+        link.click();
+        
+        document.body.removeChild(link);
+        
+    } // "saveAsExcel" function ends here
+
+    // Check if any filter is applied or not & download the table accordingly in Excel format
+    
+    function checkAndDownloadInExcel() {
+    
+        var employee_code =$("#filter2").val();     
+;
+        var employee_name = $("#filter3").val();     
+        
+        var department =$("#filter4").val();     
+        
+        var designation = $("#filter5").val();     
+        
+        var Status =$("#filter6").val();     
+        
+
+        if (employee_code.length > 0 || employee_name.length > 0 || department.length > 0 || designation.length > 0 || Status.length > 0 ){
+            
+            exportToExcelWithTableFilter() // Call the function to download the table with applied table filter/s.
+            
+        } // else if ends here
+            
+        else {
+            
+            exportToExcel() // Call the function to download the table without any filter.
+            
+        } // else ends here
+        
+    } // "checkAndDownloadInExcel" function ends here
+
+    // Download in PDF without any filter
+    
+    function exportToPDF(){
+        
+        createNewTable() // calling the function to generate a new table
+    
+        $.getScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.min.js",()=>{ // calling the cdn for jsPDF
+        $.getScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.6/jspdf.plugin.autotable.min.js",()=>{ // calling the cdn for autotable
+        
+        var doc = new jsPDF('L', 'pt', 'letter');  
+        var htmlstring = '';  
+        var tempVarToCheckPageHeight = 0;  
+        var pageHeight = 0;  
+        // pageHeight = doc.internal.pageSize.height; 
+        pageHeight = 2000; 
+        
+        specialElementHandlers = {  
+            
+            '#bypassme': function(element, renderer) {  
+        
+                return true  
+                
+            } // function ends here
+            
+        }; // Special Element Handler ends here
+        
+        margins = {  
+            
+            top: 150,
+            width: 1500 
+            
+        };  // Margin ends here
+        
+        var y = 20;  
+        doc.setLineWidth(0.5);
+        doc.text(250, y = y + 20, "Employee Information - GewinssHR");
+        
+        doc.autoTable({  
+            
+            html: '#newTableOne',  
+            startY: 70,  
+            theme: 'grid',
+            fontSize: 6,
+            
+            didParseCell: function (data) {
+                
+                // Check if the cell belongs to the header row
+                
+                if (data.row.index === 0) {
+                  
+                  data.cell.styles.fontStyle = 'bold';
+                  data.cell.styles.halign = 'center';
+                  data.cell.styles.fillColor = '#D3D3D3';
+                  data.cell.styles.fontSize = 8;
+                  
+                } // if ends here
+            },
+
+            columnStyles: {
+                
+                cellWidth: 50, // set the cell width
+                fontStyle: 'bold',
+                
+                }, // column style ends here
+                
+            styles: {  
+                
+                minCellHeight: 15,  // set the minimum cell height
+            
+            },  // styles end here
+            
+        })  // doc.autotable ends here
+        
+        doc.save('Employee_information.pdf'); // Save the report in pdf format
+        
+        }); // end of jspdf.min.js
+        }); // jspdf.plugin.autotable.min.js
+    
+    } // "exportToPDF" function ends here
+
+    // Download in PDF with any sort of  filter
+    
+    function exportToPDFWithFilters() {
+        
+        $.getScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.min.js", () => { // calling the cdn for jsPDF
+        $.getScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.6/jspdf.plugin.autotable.min.js", () => { // calling the cdn for autotable
+    
+        var doc = new jsPDF('l', 'pt', 'letter');
+        var htmlstring = '';
+        var tempVarToCheckPageHeight = 0;
+        var pageHeight = 0;
+        pageHeight = doc.internal.pageSize.height;
+    
+            specialElementHandlers = {
+              
+                '#bypassme': function (element, renderer) {
+                    
+                    return true;
+                    
+                } // function ends here
+                
+            }; // end of specialElementHandlers
+    
+            margins = {
+                  
+                top: 150,
+                bottom: 30,
+                width: 1500
+                
+            }; // margin ends here
+    
+            var y = 20;
+            doc.setLineWidth(0.5);
+            doc.text(250, y += 20, "Employee Information - GewinssHR");
+    
+            // Replace the following code with your logic to retrieve the filtered data from your table
+          
+            var filteredData = [];
+            
+            var tableRows = $('#employee_table') // Replace 'yourTableId' with the actual ID of your table
+            
+            tableRows.each(function () {
+                
+                var rowData = [];
+                
+                $(this).find('td').each(function () {
+                    
+                  rowData.push($(this).text());
+                  
+                }); // function ends here
+            
+                filteredData.push(rowData);
+            
+            }); // function ends here
+    
+            var header = ["Sl No.","Id", "Name", "Department", "Designation", "Status"]; // Header column names
+            filteredData.unshift(header); // Add the header row to the filtered data array
+            var columnIndexToRemove = 0; // Replace 0 with the index of the column you want to remove (e.g., 0 for the first column, 1 for the second column, and so on)
+
+            // Remove the column from each row in the filteredData array
+            
+            filteredData.forEach(function (row) {
+                
+                row.splice(columnIndexToRemove, 1);
+            
+            });
+
+            doc.autoTable({
+                
+                body: filteredData,
+                startY: y + 30, // Adjusted the start y-position to create a gap between the text and table
+                theme: 'grid',
+                fontSize: 6,
+        
+                didParseCell: function (data) {
+                    
+                    if (data.row.index === 0) {
+                      
+                        data.cell.styles.fontStyle = 'bold';
+                        data.cell.styles.halign = 'center';
+                        data.cell.styles.fillColor = '#D3D3D3';
+                        data.cell.styles.fontSize = 8;
+                    
+                    } // if ends here
+                
+                }, // function ends here
+                
+                // didParseRow: function (data) {
+                //     // Adjust the row height to a minimum value to avoid overlapping cells
+                //     data.row.height = 15;
+                // },
+    
+                columnStyles: {
+                    
+                    fontStyle: 'bold'
+                  
+                }, // end of columnStyles
+    
+                styles: {
+                    
+                  minCellHeight: 15
+                  
+                }, // end of styles
+            
+            }); // end of doc.autoTable
+    
+          doc.save('Employe_information.pdf'); // Save the report in PDF format
+         
+        }); // end of jspdf.plugin.autotable.min.js
+        
+      }); // end of jspdf.min.js
+
+    } // "exportToPDFWithFilters" function ends here
+
+    // Check if any filter is applied or not & download the table accordingly in PDF format
+    
+    function checkAndDownloadInPDF() {
+        
+        var employee_code =$("#filter2").val();     
+        var employee_name = $("#filter3").val();     
+        var department =$("#filter4").val();     
+        var designation = $("#filter5").val();     
+        var Status =$("#filter6").val();    
+        
+        if (employee_code.length > 0 || employee_name.length > 0 || department.length > 0 || designation.length > 0 || Status.length > 0 ){
+            
+            exportToPDFWithFilters() // Call the function to download the table with applied table filter/s.
+            
+        } // else if ends here
+            
+        else {
+            
+            exportToPDF() // Call the function to download the table without any filter.
+            
+        } // else ends here
+        
+    } // "checkAndDownloadInPDF" function ends here
+    
+    //  Display of all employees
+    
+    function showEMPdata(){
+        
+        var url=`/api/resource/Employee/?filters=[["status","=","Active"]]&fields=["employee","employee_name"]&limit_page_length=None`;
+
+        fetch(url).then((r)=>r.json()).then((js)=>{console.log(js);
+        
+        
+            
+        var dlist = document.getElementById('searchEmployee');
+        
+            for (var i=0; i<js.data.length;i++){
+                
+                var item=js.data[i];
+                var el = document.createElement("option");
+                el.setAttribute("value",item.employee);
+                el.innerHTML = item.employee_name;
+                dlist.appendChild(el);
+                
+            } // for loop ends here
+        }); // fetch url ends here
+    } // function ends here
+    
+    // Display of Data in the Onboarding Checklist
+    
+    function dataShow(empData){
+        
+        var tbody = document.getElementById("employee_checklist_table_body");
+        tbody.innerHTML=" ";
+        var tbody_one=document.getElementById("employee_checklist_table_body_one");
+        tbody_one.innerHTML=" ";
+            
+            frappe.call({method:'check_list_items',
+            
+                args : {'employee' : empData},
+                
+                callback : (res)=>{
+                    
+                    var url;
+                    var encodedEmp = encodeURIComponent(empData);
+                    
+                    if(empData=="All"){
+                    
+                        url=`/api/resource/Employee/?filters=[["status","=","Active"]]&fields=["employee","employee_name","department","designation"]&limit_page_length=None`;
+                        
+                    } // if ends here
+                    
+                    else {
+                        
+                        url=`/api/resource/Employee/?filters=[["status","=","Active"],["employee","=","${encodedEmp}"]]&fields=["employee","employee_name","department","designation"]&limit_page_length=None`;
+                        
+                    } // else ends here
+            
+                        fetch(url).then((r)=>r.json()).then((js)=>{ // console.log(js);
+                        
+                        for (var j=0; j<js.data.length;j++){
+                            
+                            var item=js.data[j];
+                            var row = tbody.insertRow();
+                            var row_one = tbody_one.insertRow();
+                 
+                            // ID of the Employee
+                            
+                            var cell1=row.insertCell();     
+                            cell1.innerHTML=item.employee;
+                            cell1.style.textAlign='center';       
+                            // cell1.style.borderBottom= "thin solid #00ffff";
+                            cell1.style.fontSize= '12px';
+                        
+                            var cell1_one=row_one.insertCell();
+                            cell1_one.innerHTML=item.employee;
+                            cell1_one.style.textAlign='center';
+                            // cell1_one.style.borderBottom= "thin solid #00ffff";
+                            cell1_one.style.fontSize= '12px';
+                        
+                            // Name of the Employee
+                            
+                            var cell2=row.insertCell();
+                            cell2.innerHTML=item.employee_name;
+                            cell2.style.textAlign='center';
+                            // cell2.style.borderBottom= "thin solid #00ffff";
+                            cell2.style.fontSize= '12px';
+                            
+                            var cell2_one=row_one.insertCell();
+                            cell2_one.innerHTML=item.employee_name;
+                            cell2_one.style.textAlign='center';
+                            // cell2_one.style.borderBottom= "thin solid #00ffff";
+                            cell2_one.style.fontSize= '12px';
+                            
+                            // Department of the Employee
+                            
+                            var cell3=row.insertCell();
+                            cell3.innerHTML=item.department;
+                            cell3.style.textAlign='center';
+                            // cell3.style.borderBottom= "thin solid #00ffff";
+                            cell3.style.fontSize= '12px';
+                            
+                            var cell3_one=row_one.insertCell();
+                            cell3_one.innerHTML=item.department;
+                            cell3_one.style.textAlign='center';
+                            // cell3_one.style.borderBottom= "thin solid #00ffff";
+                            cell3_one.style.fontSize= '12px';
+                            
+                            // Designation of the Employee
+                            
+                            var cell4=row.insertCell();
+                            cell4.innerHTML=item.designation;
+                            cell4.style.textAlign='center';
+                            // cell4.style.borderBottom= "thin solid #00ffff";
+                            cell4.style.fontSize= '12px';
+                            
+                            var cell4_one=row_one.insertCell();
+                            cell4_one.innerHTML=item.designation;
+                            cell4_one.style.textAlign='center';
+                            // cell4_one.style.borderBottom= "thin solid #00ffff";
+                            cell4_one.style.fontSize= '12px';
+                            
+                            // Emergency Phone Number
+                        
+                            var cell5=row.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','emer_cont_num'+j);
+                            cell5.appendChild(div);
+                            
+                            var cell5_one=row_one.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','emer_cont_num_one'+j);
+                            cell5_one.appendChild(div);
+                            
+                            // Emergency Contact Person
+                            
+                            var cell6=row.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','emer_cont_name'+j);
+                            cell6.appendChild(div);
+                            
+                            var cell6_one=row_one.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','emer_cont_name_one'+j);
+                            cell6_one.appendChild(div);
+                            
+                            // cell number        
+                            
+                            var cell7=row.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','cont_num'+j);
+                            cell7.appendChild(div);
+                            
+                            var cell7_one=row_one.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','cont_num_one'+j);
+                            cell7_one.appendChild(div);
+                            
+                            // Personal Email
+                            
+                            var cell8=row.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','pers_email'+j);
+                            cell8.appendChild(div);
+                            
+                            var cell8_one=row_one.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','pers_email_one'+j);
+                            cell8_one.appendChild(div);
+                            
+                            // Prefered Email
+                            
+                            var cell9=row.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','prfrd_email'+j);
+                            cell9.appendChild(div);
+                            
+                            var cell9_one=row_one.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','prfrd_email_one'+j);
+                            cell9_one.appendChild(div);
+                            
+                            // Permanent Address
+                            
+                            var cell10=row.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','per_add'+j);
+                            cell10.appendChild(div);
+                            
+                            var cell10_one=row_one.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','per_add_one'+j);
+                            cell10_one.appendChild(div);
+                            
+                            // Present Address
+                            
+                            var cell11=row.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','curr_add'+j);
+                            cell11.appendChild(div);
+                            
+                            var cell11_one=row_one.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','curr_add_one'+j);
+                            cell11_one.appendChild(div);
+                            
+                            // Passport Number
+                            
+                            var cell12=row.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','pass_num'+j);
+                            cell12.appendChild(div);
+                            
+                            var cell12_one=row_one.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','pass_num_one'+j);
+                            cell12_one.appendChild(div);
+                            
+                            // Date of Issue
+                            
+                            var cell13=row.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','date_of_issue'+j);
+                            cell13.appendChild(div);
+                            
+                            var cell13_one=row_one.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','date_of_issue_one'+j);
+                            cell13_one.appendChild(div);
+                            
+                            // Valid Upto
+                            
+                            var cell14=row.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','valid_upto'+j);
+                            cell14.appendChild(div);
+                            
+                            var cell14_one=row_one.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','valid_upto_one'+j);
+                            cell14_one.appendChild(div);
+                            
+                            // Place Of issue
+                            
+                            var cell15=row.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','place_of_issue'+j);
+                            cell15.appendChild(div);
+                            
+                            var cell15_one=row_one.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','place_of_issue_one'+j);
+                            cell15_one.appendChild(div);
+                            
+                            // Marital Status
+                            
+                            var cell16=row.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','mar_status'+j);
+                            cell16.appendChild(div);
+                            
+                            var cell16_one=row_one.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','mar_status_one'+j);
+                            cell16_one.appendChild(div);
+                            
+                            // Blood Group
+                            
+                            var cell17=row.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','blood_group'+j);
+                            cell17.appendChild(div);
+                            
+                            var cell17_one=row_one.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','blood_group_one'+j);
+                            cell17_one.appendChild(div);
+                            
+                            // Family Background
+                            
+                            var cell18=row.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','fam_back'+j);
+                            cell18.appendChild(div);
+                            
+                            var cell18_one=row_one.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','fam_back_one'+j);
+                            cell18_one.appendChild(div);
+                            
+                            // Health Details
+                            
+                            var cell19=row.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','hlth_dtl'+j);
+                            cell19.appendChild(div);
+                            
+                            var cell19_one=row_one.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','hlth_dtl_one'+j);
+                            cell19_one.appendChild(div);
+                            
+                            // Educational Details
+                            
+                            var cell20=row.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','edu_dtl'+j);
+                            cell20.appendChild(div);
+                            
+                            var cell20_one=row_one.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','edu_dtl_one'+j);
+                            cell20_one.appendChild(div);
+                            
+                            // External Work Experience
+                            
+                            var cell21=row.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','exwe_dtl'+j);
+                            cell21.appendChild(div);
+                            
+                            var cell21_one=row_one.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','exwe_dtl_one'+j);
+                            cell21_one.appendChild(div);
+                            
+                            // Internal Work Experience
+                            
+                            var cell22=row.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','iwe_dtl'+j);
+                            cell22.appendChild(div);
+                            
+                            var cell22_one=row_one.insertCell();
+                            var div=document.createElement("div");
+                            div.setAttribute('class',`float-end`);
+                            div.setAttribute('id','iwe_dtl_one'+j);
+                            cell22_one.appendChild(div);
+                
+                        }//for ends here (j)
+                        
+                        for (j=0;j<js.data.length;j++){
+                            
+                            var emer_cont_num;
+                            var emer_cont_name;
+                            var cont_num; 
+                            var pers_email; 
+                            var prfrd_email;
+                            var per_add;
+                            var curr_add;
+                            var pass_num;
+                            var date_of_issue;
+                            var valid_upto;
+                            var place_of_issue;
+                            var mar_status;
+                            var blood_group;
+                            var fam_back;
+                            var hlth_dtl;
+                            var edu_dtl;
+                            var exwe_dtl;
+                            var iwe_dtl;
+                            
+                            var emer_cont_num_one;
+                            var emer_cont_name_one;
+                            var cont_num_one; 
+                            var pers_email_one; 
+                            var prfrd_email_one;
+                            var per_add_one;
+                            var curr_add_one;
+                            var pass_num_one;
+                            var date_of_issue_one;
+                            var valid_upto_one;
+                            var place_of_issue_one;
+                            var mar_status_one;
+                            var blood_group_one;
+                            var fam_back_one;
+                            var hlth_dtl_one;
+                            var edu_dtl_one;
+                            var exwe_dtl_one;
+                            var iwe_dtl_one;
+                            
+                            // present days
+                            
+                            var countp=0;
+                            
+                            for (var i=0;i<res.message.length;i++){
+                                
+                                var citem=res.message[i];               
+                                // console.log(citem);
+                                if(js.data[j].employee==citem.employee){
+                                    
+                                    // Emergency Phone Number
+                                    
+                                    if (citem.emergency_phone_number === null || citem.emergency_phone_number.length===0){
+                        
+                                       
+                                        emer_cont_num=`<input type='checkbox'  disabled  />`;
+                                        emer_cont_num_one=`<p>`+"N"+`</p>`;
+                                        // console.log(citem.employee,citem.emergency_phone_number,1)
+                                        
+                                    } //if ends here 
+                                    
+                                    else {
+                                        
+                                        emer_cont_num=`<input type='checkbox' checked disabled  style='background-color:#00cc00;'/>`;
+                                        emer_cont_num_one=`<p>`+"Y"+`</p>`;
+                                        // console.log(citem.employee,citem.emergency_phone_number,1)
+                                        
+                                    } //else ends here
+                                
+                                    // Emergency Contact Name
+
+                                    if (citem.person_to_be_contacted === null || citem.person_to_be_contacted.length===0){
+                        
+                                       
+                                        emer_cont_name=`<input type='checkbox'  disabled '/>`;
+                                        emer_cont_name_one=`<p>`+"N"+`</p>`;
+                                        
+                                    } //if ends here 
+                                    
+                                    else {
+                                        
+                                        emer_cont_name=`<input type='checkbox' checked disabled  style='background-color:#00cc00;'/>`;
+                                        emer_cont_name_one=`<p>`+"Y"+`</p>`;
+                                        
+                                    } //else ends here
+                                    
+                                    // Phone Number
+                                    
+                                    if (citem.cell_number === null || citem.cell_number.length===0){
+                        
+                                        cont_num=`<input type='checkbox'  disabled />`;
+                                        cont_num_one=`<p>`+"N"+`</p>`;
+                                        
+                                    } //if ends here 
+                                    
+                                    else {
+                                        
+                                        cont_num=`<input type='checkbox' checked disabled  style='background-color:#00cc00;'/>`;
+                                        cont_num_one=`<p>`+"Y"+`</p>`;
+                                        
+                                    } //else ends here
+                                    
+                                    // Personal Email
+                        
+                                    if (citem.personal_email === null || citem.personal_email.length===0){
+                        
+                                        pers_email=`<input type='checkbox'  disabled />`;
+                                        pers_email_one=`<p>`+"N"+`</p>`;
+                                        
+                                    } //if ends here 
+                                    
+                                    else {
+                                        
+                                        pers_email=`<input type='checkbox' checked disabled  style='background-color:#00cc00;'/>`;
+                                        pers_email_one=`<p>`+"Y"+`</p>`;
+                                        
+                                    } //else ends here
+                                
+                                    // Prefered Email
+                        
+                                    if (citem.prefered_email === null || citem.prefered_email.length===0){
+                        
+                                        prfrd_email=`<input type='checkbox'  disabled />`;
+                                        prfrd_email_one=`<p>`+"N"+`</p>`;
+                                        
+                                    } //if ends here 
+                                    
+                                    else {
+                                        
+                                        prfrd_email=`<input type='checkbox' checked disabled  style='background-color:#00cc00;'/>`;
+                                        prfrd_email_one=`<p>`+"Y"+`</p>`;
+                                        
+                                    } //else ends here
+                                    
+                                    // Permanent Address
+                        
+                                    if (citem.permanent_address === null || citem.permanent_address.length===0){
+                        
+                                       
+                                        per_add=`<input type='checkbox'  disabled />`;
+                                        per_add_one=`<p>`+"N"+`</p>`;
+                                        
+                                    } //if ends here 
+                                    
+                                    else {
+                                        
+                                        per_add=`<input type='checkbox' checked disabled  style='background-color:#00cc00;'/>`;
+                                        per_add_one=`<p>`+"Y"+`</p>`;
+                                        
+                                    } //else ends here
+                                    
+                                    // Current Address
+                        
+                                    if (citem.current_address === null || citem.current_address.length===0){
+                        
+                                        
+                                        curr_add=`<input type='checkbox'  disabled />`;
+                                        curr_add_one=`<p>`+"N"+`</p>`;
+                                        
+                                    } //if ends here 
+                                    
+                                    else {
+                                        
+                                        curr_add=`<input type='checkbox' checked disabled  style='background-color:#00cc00;'/>`;
+                                        curr_add_one=`<p>`+"Y"+`</p>`;
+                                        
+                                    } //else ends here
+                                    
+                                    // Passport Number
+                    
+                                    if (citem.passport_number === null || citem.passport_number.length===0){
+                        
+                                        
+                                        pass_num=`<input type='checkbox'  disabled />`;
+                                        pass_num_one=`<p>`+"N"+`</p>`;
+                                        
+                                    } //if ends here 
+                                    
+                                    else {
+                                        
+                                        pass_num=`<input type='checkbox' checked disabled  style='background-color:#00cc00;'/>`;
+                                        pass_num_one=`<p>`+"Y"+`</p>`;
+                                        
+                                    } //else ends here
+                                    
+                                    // Date of Issue
+                        
+                                    if (citem.date_of_issue === null || citem.date_of_issue.length===0){
+                        
+                                        date_of_issue=`<input type='checkbox'  disabled />`;
+                                        date_of_issue_one=`<p>`+"N"+`</p>`;
+                                        
+                                    } //if ends here 
+                                    
+                                    else {
+                                        
+                                        date_of_issue=`<input type='checkbox' checked disabled  style='background-color:#00cc00;'/>`;
+                                        date_of_issue_one=`<p>`+"Y"+`</p>`;
+                                        
+                                    } //else ends here
+                                    
+                                    // Valid Upto
+                        
+                                    if (citem.valid_upto === null || citem.valid_upto.length===0){
+                        
+                                        valid_upto=`<input type='checkbox'  disabled />`;
+                                        valid_upto_one=`<p>`+"N"+`</p>`;
+                                        
+                                    } //if ends here 
+                                    
+                                    else {
+                                        
+                                        valid_upto=`<input type='checkbox' checked disabled  style='background-color:#00cc00;'/>`;
+                                        valid_upto_one=`<p>`+"Y"+`</p>`;
+                                        
+                                    } //else ends here
+                                    
+                                    // Place Of Issue
+                                    
+                                     if (citem.place_of_issue=== null || citem.place_of_issue.length===0){
+                                         
+                                        place_of_issue=`<input type='checkbox'  disabled />`;
+                                        place_of_issue_one=`<p>`+"N"+`</p>`;
+                                        
+                                    } //if ends here
+                                    
+                                    else {
+                                        
+                                        place_of_issue=`<input type='checkbox' checked disabled  style='background-color:#00cc00;'/>`;
+                                        place_of_issue_one=`<p>`+"Y"+`</p>`;
+                                        
+                                    } //else ends here
+                                    
+                                    // Marital Status
+                                    
+                                    
+                                    if (citem.marital_status === null || citem.marital_status.length===0){
+                    
+                                        mar_status=`<input type='checkbox'  disabled  />`;
+                                        mar_status_one=`<p>`+"N"+`</p>`;
+                                        
+                                    } //if ends here 
+                                    
+                                    else {
+                                        
+                                        mar_status=`<input type='checkbox' checked disabled  style='background-color:#00cc00;'/>`;
+                                        mar_status_one=`<p>`+"Y"+`</p>`;
+                                        
+                                    } //else ends here
+                                
+                                    // Blood Group
+                                    
+                                    
+                                    if (citem.blood_group === null || citem.blood_group.length===0){
+                        
+                                        
+                                        blood_group=`<input type='checkbox'  disabled  />`;
+                                        blood_group_one=`<p>`+"N"+`</p>`;
+                                        
+                                    } //if ends here 
+                                    
+                                    else {
+                                        
+                                        blood_group=`<input type='checkbox' checked disabled  style='background-color:#00cc00;'/>`;
+                                        blood_group_one=`<p>`+"Y"+`</p>`;
+                                        
+                                    } //else ends here
+                                    
+                                    // Family Bacground
+                                    
+                                    
+                                    if (citem.family_background === null || citem.family_background.length===0){
+                                        
+                                        fam_back=`<input type='checkbox'  disabled  />`;
+                                        fam_back_one=`<p>`+"N"+`</p>`;
+                                        
+                                    } //if ends here 
+                                    
+                                    else {
+                                        
+                                        fam_back=`<input type='checkbox' checked disabled  style='background-color:#00cc00;'/>`;
+                                        fam_back_one=`<p>`+"Y"+`</p>`;
+                                        
+                                    } //else ends here
+                                
+                                    // Health Details
+                                    
+                                    if (citem.health_details === null || citem.health_details.length===0){
+                        
+                                        
+                                        hlth_dtl=`<input type='checkbox'  disabled  />`;
+                                        hlth_dtl_one=`<p>`+"N"+`</p>`;
+                                        
+                                    } //if ends here 
+                                    
+                                    else {
+                                        
+                                        hlth_dtl=`<input type='checkbox' checked disabled  style='background-color:#00cc00;'/>`;
+                                        hlth_dtl_one=`<p>`+"Y"+`</p>`;
+                                        
+                                    } //else ends here
+
+                                    // Educational Deatails
+                                    
+                                    if (citem.educational_details === 0){
+                                        
+                                        edu_dtl=`<input type='checkbox'  disabled  />`;
+                                        edu_dtl_one=`<p>`+"N"+`</p>`;
+                                        
+                                    }
+                                    
+                                    else {
+                                        
+                                        edu_dtl=`<input type='checkbox' checked  disabled  style='background-color:#00cc00;'/>`;
+                                        edu_dtl_one=`<p>`+"Y"+`</p>`;
+                                        
+                                    }
+
+                                    // Previous Work Experience
+                                    
+                                    if (citem.previouswork_experience === 0){
+                        
+                                        exwe_dtl=`<input type='checkbox'  disabled />`;
+                                        exwe_dtl_one=`<p>`+"N"+`</p>`;
+                                        
+                                    } //if ends here 
+                                    
+                                    else {
+                                        
+                                        exwe_dtl=`<input type='checkbox' checked disabled  style='background-color:#00cc00;'/>`;
+                                        exwe_dtl_one=`<p>`+"Y"+`</p>`;
+                                        
+                                    } //else ends here
+
+                                    // Current Work Experience
+
+                                    if (citem.currentwork_experience === 0){
+                        
+                                       
+                                        iwe_dtl=`<input type='checkbox'  disabled />`;
+                                        iwe_dtl_one=`<p>`+"N"+`</p>`;
+                                        
+                                    } //if ends here 
+                                    
+                                    else {
+                                        
+                                        iwe_dtl=`<input type='checkbox' checked disabled  style='background-color:#00cc00;'/>`;
+                                        iwe_dtl_one=`<p>`+"Y"+`</p>`;
+                                        
+                                    } //else ends here
+                                } // if ends here
+                            } // for loop ends here
+                            
+                            $(`#emer_cont_num${j}`).html(emer_cont_num);
+                            $(`#emer_cont_name${j}`).html(emer_cont_name);
+                            $(`#cont_num${j}`).html(cont_num);
+                            $(`#pers_email${j}`).html(pers_email);
+                            $(`#prfrd_email${j}`).html(prfrd_email);
+                            $(`#per_add${j}`).html(per_add);
+                            $(`#curr_add${j}`).html(curr_add);
+                            $(`#pass_num${j}`).html(pass_num);
+                            $(`#date_of_issue${j}`).html(date_of_issue);
+                            $(`#valid_upto${j}`).html(valid_upto);
+                            $(`#place_of_issue${j}`).html(place_of_issue);
+                            $(`#mar_status${j}`).html(mar_status);
+                            $(`#blood_group${j}`).html(blood_group);
+                            $(`#fam_back${j}`).html(fam_back);
+                            $(`#hlth_dtl${j}`).html(hlth_dtl);
+                            $(`#edu_dtl${j}`).html(edu_dtl);
+                            $(`#exwe_dtl${j}`).html(exwe_dtl);
+                            $(`#iwe_dtl${j}`).html(iwe_dtl);
+                            
+                            $(`#emer_cont_num_one${j}`).html(emer_cont_num_one);
+                            $(`#emer_cont_name_one${j}`).html(emer_cont_name_one);
+                            $(`#cont_num_one${j}`).html(cont_num_one);
+                            $(`#pers_email_one${j}`).html(pers_email_one);
+                            $(`#prfrd_email_one${j}`).html(prfrd_email_one);
+                            $(`#per_add_one${j}`).html(per_add_one);
+                            $(`#curr_add_one${j}`).html(curr_add_one);
+                            $(`#pass_num_one${j}`).html(pass_num_one);
+                            $(`#date_of_issue_one${j}`).html(date_of_issue_one);
+                            $(`#valid_upto_one${j}`).html(valid_upto_one);
+                            $(`#place_of_issue_one${j}`).html(place_of_issue_one);
+                            $(`#mar_status_one${j}`).html(mar_status_one);
+                            $(`#blood_group_one${j}`).html(blood_group_one);
+                            $(`#fam_back_one${j}`).html(fam_back_one);
+                            $(`#hlth_dtl_one${j}`).html(hlth_dtl_one);
+                            $(`#edu_dtl_one${j}`).html(edu_dtl_one);
+                            $(`#exwe_dtl_one${j}`).html(exwe_dtl_one);
+                            $(`#iwe_dtl_one${j}`).html(iwe_dtl_one);
+                        } // end for j
+                    });//end of employee fetch
+                }//end of call back
+            });//ends of frappe.call
+        }//ends of function
+    
+    // Download Employee Checklist Table
+
+    function changeFunc_one() {
+    
+        var selectBoxOne = document.getElementById("selectBox_one");
+        var selectedValueOne = selectBoxOne.options[selectBoxOne.selectedIndex].value;
+
+        if(selectedValueOne=="exportToExcel_one"){
+            
+          exportToExcel_one(); // calling the funtion to download the report in excel format
+          
+        } // else ends here
+        
+        else if(selectedValueOne=="downloadCSV_one"){
+            
+            downloadCSV_one(); // calling the funtion to download the report in csv format
+            
+        } // else ends here
+        
+        else if(selectedValueOne=="exportToPDF_one"){
+            
+            exportToPDF_one(); // calling the funtion to download the report in pdf format
+            
+        } // else ends here
+        
+    } // function ends here 
+
+    //  Download in Excel for employee checklist table
+
+    function exportToExcel_one() {
+        
+        // tablebodyswitching() // calling the function to generate a new table
+        var table = document.getElementById("employee_checklist_table_one");
+        var workbook = XLSX.utils.table_to_book(table, {sheet:"Sheet 1"});
+        var excelBuffer = XLSX.write(workbook, {bookType:'xlsx', type:'array'});
+        saveAsExcel_one(excelBuffer, "employee_checklist_table.xlsx");
+        
+    } // function ends here
+
+    function saveAsExcel_one(buffer, filename) {
+        
+        var blob = new Blob([buffer], {type: 'application/octet-stream'});
+        var url = window.URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+    } // function ends here
+    
+   //  Download in CSV
+
+    function downloadCSV_one() {
+        
+        // Get the table data
+        
+        var tableOne = document.querySelector('table[id="employee_checklist_table_one"]');
+        
+        // console.log(document.querySelectorAll('table')[0]);
+        
+        const rows = tableOne.querySelectorAll('tr');
+
+        // Build the CSV data
+        
+        let csv = '';
+        
+        for (let i = 0; i < rows.length; i++) {
+            
+            var cells = rows[i].querySelectorAll('td');
+            
+            if (cells.length===0){
+                
+                cells = rows[i].querySelectorAll('th');
+                
+            } // if ends here
+        
+          let row = '';
+          
+            if (rows[i].style.display!="none"){
+              
+                for (let j = 0; j < cells.length; j++) {
+                  
+                    row += cells[j].textContent.replaceAll(",","|") + ',';
+                
+                } // for loop ends here
+            
+            csv += row + '\r\n';
+          
+            } // if ends here
+          
+        } // for loop ends here
+
+        // Download the CSV file
+        
+        const link = document.createElement('a');
+        link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv));
+        link.setAttribute('download', 'employee_checklist_table.csv');
+        link.click();
+        
+    } // function ends here  
+    
+    function exportToPDF_one(){
+        
+        $.getScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.min.js",()=>{ // calling the cdn for jsPDF
+        $.getScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.6/jspdf.plugin.autotable.min.js",()=>{ // calling the cdn for autotable
+        
+        var doc = new jsPDF('L', 'pt', 'letter');  
+        var htmlstring = '';  
+        var tempVarToCheckPageHeight = 0;  
+        var pageHeight = 0;  
+        // pageHeight = doc.internal.pageSize.height; 
+        pageHeight = 2000; 
+        
+        specialElementHandlers = {  
+            
+            '#bypassme': function(element, renderer) {  
+        
+                return true  
+                
+            } // function ends here
+            
+        }; // Special Element Handler ends here
+        
+        margins = {  
+            
+            top: 150,
+            width: 1500 
+            
+        };  // Margin ends here
+        
+        var y = 20;  
+        doc.setLineWidth(0.5);
+        doc.text(250, y = y + 20, "Employee Infromation Checklist - GewinssHR");
+        
+        doc.autoTable({  
+            
+            html: '#employee_checklist_table_one',  
+            startY: 70,  
+            theme: 'grid',
+            fontSize: 6,
+            
+            didParseCell: function (data) {
+                
+                // Check if the cell belongs to the header row       
+                
+                if (data.row.index === 0) {
+                  
+                //   data.cell.styles.fontStyle = 'bold';
+                  data.cell.styles.halign = 'center';         
+                  data.cell.styles.fillColor = '#D3D3D3';
+                  data.cell.styles.fontSize = 8;
+                  
+                } // if ends here
+            },
+
+            columnStyles: {
+                
+                cellWidth: 50, // set the cell width
+                fontStyle: 'bold',
+                
+                }, // column style ends here
+                
+            styles: {  
+                
+                minCellHeight: 15,  // set the minimum cell height
+            
+            },  // styles end here
+            
+        })  // doc.autotable ends here
+        
+        doc.save('Employee_Information_Checklist.pdf'); // Save the report in pdf format
+        
+        }); // end of jspdf.min.js
+        }); // jspdf.plugin.autotable.min.js
+        
+    } // function ends here
+

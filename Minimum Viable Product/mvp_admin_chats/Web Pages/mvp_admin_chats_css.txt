@@ -1,0 +1,634 @@
+   // Hide the default footer & header from the web page
+
+    $(document).ready(() => {  
+        
+        //console.log(document.getElementsByTagName("nav")[0].innerHTML);
+          
+        // Hiding the default navbar part
+            
+        // var e=document.getElementsByTagName("nav")[0];
+        // e.parentNode.removeChild(e);
+        
+        // Hiding the default footer part
+        
+        var f=document.getElementsByClassName("web-footer")[0];
+        f.parentNode.removeChild(f);
+        
+    }); // document.ready endas here
+    
+    // Login required
+
+    $(document).ready(()=>{
+ 
+        if (frappe.user_id==="Guest"){
+            
+            window.location.assign("/login");
+            
+        } // if ends here
+    });//end windows.ready
+    
+    //  Check box select all & deselect all
+
+    function checkAndMarkChecked(){
+        
+        var allCheckBox=document.getElementById('allCheckBox');
+        
+        if(allCheckBox.checked === true){
+            
+            const checkboxes = document.querySelectorAll('input[class="checkbox_one"]'); // Get all checkboxes on the page
+            
+            checkboxes.forEach((checkbox) => { // Iterate over each checkbox and set its checked property to true
+            
+                checkbox.checked = true;
+            
+            }); // change the value of check box
+            
+        } //if ends here
+        
+        else {
+            
+            const checkboxes = document.querySelectorAll('input[class="checkbox_one"]'); // Get all checkboxes on the page
+        
+            checkboxes.forEach((checkbox) => { // Iterate over each checkbox and set its checked property to true
+                
+                checkbox.checked = false;
+            
+            }); // change the value of check box
+            
+        }//else ends here
+    
+    } // "checkAndMarkChecked" function ends here
+
+    //  Employee image at the Right Corner
+
+    frappe.ready(() => {
+        
+        var url=`/api/resource/Employee/?filters=[["user_id","=","${frappe.user_id}"]]&fields=["image","first_name"]`;
+            // console.log(url);
+            
+        fetch(url).then((r)=>r.json()).then((js)=>{//console.log(js);
+            var item=js.data[0];
+            //console.log(item);
+        
+            if (item.image){
+        
+                var a=document.getElementById("nav_user");
+                a.setAttribute("class","border");
+                a.setAttribute("src",item.image);
+                
+            }
+            else {
+                
+                var sn=item.first_name.substring(0,2).toUpperCase();
+                var b=document.getElementById("nav_user");
+                b.setAttribute("class","border");
+                b.setAttribute("src",generated(sn));
+                
+            } // else ends here
+            
+            document.getElementById("nav_name").innerHTML=item.first_name;
+            
+        });// fetch url ends here
+        
+        function generated(name) {
+            
+            let canvas = document.createElement('canvas');
+              
+            canvas.height = 180;
+            canvas.width  = 180;
+              
+            let context = canvas.getContext('2d');
+              
+            //context.drawImage(this.poster, 0, 0)
+            context.fillStyle = "#eef0f2";
+            context.fillRect(0, 0, canvas.width, canvas.height);
+              
+            context.font = "50px Arial";
+            context.fillStyle="black";
+            context.fillText(name, 50, 95);
+              
+            return canvas.toDataURL('image/jpeg');
+            
+        } // "generated"  function ends here 
+            
+    });// frappe.ready ends here
+   
+   // 
+    
+    function saveSubscription(target){
+        
+        // console.log(target.value);
+        // console.log(target.checked);
+        var sub="NO";
+        if (target.checked){sub="YES";}
+        
+        frappe.call({method : 'update_subscription',
+        
+            args:{employee:target.value,subscription:sub}
+            
+        }); // frappe.call ends here
+        
+    } // function ends here
+
+    // 
+
+    function sendCheckinReminder(){
+    
+        frappe.call({method:'gewin_payroll.employee_reminders.late_checkin_reminder',
+        
+            callback : (r)=>{
+            
+                // console.log(r.message);
+            
+            } // callback ends here
+            
+        }); // frappe.call ends here
+        
+    } // function ends here
+
+    // Display of data for subscription tab
+
+    frappe.ready(()=>{
+        
+        var url=`/api/resource/Employee/?filter=[["status"="active"]]&fields=["employee","employee_name","cell_number","whatsapp_subscription"]&limit_page_length=None`;
+        fetch(url).then((r)=>r.json()).then((js)=>{// console.log(js);
+            var tbody=document.querySelector('tbody');
+            tbody.innerHTML="";
+            for (i=0;i<js.data.length;i++){
+                item=js.data[i];
+                var tr =document.createElement('tr');  
+                tr.appendChild(createTd(item.employee));tr.appendChild(createTd(item.employee_name));
+                tr.appendChild(createTd(item.cell_number));
+                //tr.appendChild(createTd(item.whatsapp_subscription));
+                //var cb=document.createElement('div');cb.inerHTML='<input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">';
+                    if (item.whatsapp_subscription=="YES"){
+                        //console.log(item);
+                    tr.appendChild(createTd(`<input class="form-check-input" type="checkbox" style="border:1px solid black" value="${item.employee}" onChange="saveSubscription(this)" checked>`));
+                        
+                    } else {
+                        tr.appendChild(createTd(`<input class="form-check-input" type="checkbox" style="border:1px solid black" value="${item.employee}" onChange="saveSubscription(this)" >`));
+                    }
+                tbody.appendChild(tr);
+                
+            } // for loop ends here
+    
+        }); // fetch url ends here
+
+        // 
+    
+        function createTd(innerh){
+            
+            var td=document.createElement('td');
+            td.innerHTML=innerh; td.style.textAlign='center';td.style.borderBottom= "thin solid #00ffff";
+            return td;
+        
+        } // end function
+        
+        //
+        
+        function createCheck(){
+            
+            var td=document.createElement('td');
+            // td.innerHTML=innerh; 
+            var cb=document.createElement('input');cb.setAttribute("class","form-check-input");
+            td.style.textAlign='center';td.style.borderBottom= "thin solid #00ffff";
+            return td;
+            
+        } // end function
+
+    }); // frappe.ready ends here
+
+    // 
+
+    frappe.ready(()=>{
+        
+        var bbox = '88.2686,22.4933,88.4164,22.5967'; // Bounding box of Kolkata
+        var query = '[out:json];(way["boundary"="administrative"]["admin_level"="10"](' + bbox + ');relation["boundary"="administrative"]["admin_level"="10"](' + bbox + '););out body;>;out skel qt;';
+        var url = 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query);
+        
+        fetch(url)
+          .then(response => response.json())
+          .then(data => {
+              
+            // Handle the returned data
+            //console.log(data);
+            
+          }) // fetch.url ends here
+          
+          .catch(error => console.error(error));
+          
+        // Adjust space for small screen size
+
+    }); // frappe.ready ends here  
+
+    // Beardcrumbs for Messaging
+
+    function bdfun(){
+        
+        document.getElementById("bd").innerHTML="Messaging";
+        
+    } // function ends here
+    
+    // Beardcrumbs for Subscription
+    
+    function bdfun1(){
+        
+        document.getElementById("bd").innerHTML="Subscription";
+        
+    } // function ends here
+    
+    // Display of Employee Information 
+
+    frappe.ready(()=>{
+        
+        var url=`/api/resource/Employee/?filter=[["status"="active"]]&fields=["employee","employee_name","department","designation","image","first_name","last_name"]&limit_page_length=None`;
+        fetch(url).then((r)=>r.json()).then((js)=>{ console.log(js);
+            var tbody=document.getElementById('employee_info');
+            tbody.innerHTML="";
+            for (var i=0; i<js.data.length;i++){
+                var item=js.data[i];
+                var row = tbody.insertRow();
+            
+                // Checkbox
+                
+                var cell0=row.insertCell();
+                var x = document.createElement("INPUT");
+                x.setAttribute("type", "checkbox");
+                x.setAttribute("class", "checkbox_one");
+                x.setAttribute("id", item.employee);
+                x.style.height = "15px";
+                x.style.border = "1px solid black";
+                x.style.marginLeft = "8px";
+                x.value=item.employee;
+                cell0.appendChild(x);
+                
+                // Image of the Employee
+                
+                var cell1=row.insertCell();
+                
+                if(item.image){
+                    
+                    cell1.innerHTML="<img src='" + item.image + "'height='30px;' 'width= 60px;' class='img-40 rounded-circle'>";
+                    
+                } else {
+                    
+                    if(item.last_name) {
+                        
+                        var sn_one = item.first_name.substring(0,1).toUpperCase() + item.last_name.substring(0,1).toUpperCase();
+                        
+                    } else {
+                        
+                        var sn_one = item.first_name.substring(0,2).toUpperCase();
+                    
+                    } // else ends here
+                    
+                    cell1.innerHTML="<img src='" + generate(sn_one) + "'height='30px;' 'width= 60px;' class='img-40 rounded-circle'>";
+                    
+                } // else ends here
+                
+                cell1.style.borderBottom= "thin solid #00ffff";
+                
+                // Id of the Employee
+                
+                var cell2=row.insertCell();
+                cell2.innerHTML=item.employee;
+                cell2.style.textAlign='center';
+                cell2.style.fontSize= '12px';
+                
+                // Name of the Employee
+                
+                var cell3=row.insertCell();
+                cell3.innerHTML=item.employee_name;
+                cell3.style.textAlign='center';
+                cell3.style.fontSize= '12px';
+                
+                // Department of the Employee
+                
+                var cell4=row.insertCell();
+                cell4.innerHTML=item.department;
+                cell4.style.textAlign='center';
+                cell4.style.fontSize= '12px';
+                
+                // Designation of the Employee
+                
+                var cell5=row.insertCell();
+                cell5.innerHTML=item.designation;
+                cell5.style.textAlign='center';
+                cell5.style.fontSize= '12px';
+                
+                // Show chat Button
+                
+                var cell5=row.insertCell();
+                var div = document.createElement("div");
+                div.setAttribute('class','d-flex justify-content-center');
+                var button = document.createElement("button");
+                button.setAttribute("type","button");
+                button.setAttribute('class','button-29');
+                button.style.textDecoration = "none";
+                button.innerHTML="Chat";
+                var encodedEmp = JSON.stringify(item.employee);
+                button.setAttribute("onclick", "showChat('" + encodedEmp + "')");
+                
+                div.appendChild(button);
+                cell5.appendChild(div);
+            
+            } // for loop ends here
+    
+        }); // fetch url ends here
+        
+        function generate(name) {
+            
+            let canvas = document.createElement('canvas');
+              
+            canvas.height = 180;
+            canvas.width  = 180;
+              
+            let context = canvas.getContext('2d');
+              
+            //context.drawImage(this.poster, 0, 0)
+            context.fillStyle = "#eef0f2";
+            context.fillRect(0, 0, canvas.width, canvas.height);
+              
+            context.font = "50px Arial";
+            context.fillStyle="black";
+            context.fillText(name, 50, 95);
+              
+            return canvas.toDataURL('image/jpeg');
+            
+        } // "generated" function ends here 
+    
+    }); // frappe.ready ends here
+    
+    // 
+
+    function admin_message(){
+    
+        const table_one = document.getElementById("employee_information");
+        const applications_one = table_one.querySelectorAll('input[class="checkbox_one"]:checked');
+        var values_one = [];
+        
+        for (var i = 0; i < applications_one.length; i++) {
+            
+            values_one.push(applications_one[i].value);
+            
+        } // for ends here
+    
+        var msgbox = $('#msgbox').val();
+        var selectBoxx =  $('#selectBoxx').val();
+        var updated_selectBoxx;
+        
+        if (selectBoxx.length < 1){
+            
+            updated_selectBoxx="text";
+            
+        } else {
+            
+            updated_selectBoxx = selectBoxx;
+            
+        } // else ends here
+        
+        frappe.call({
+            
+            method: 'conversation_with_admin',
+          
+            args: {
+            
+                recipient: values_one,
+                message: msgbox,
+                message_type: updated_selectBoxx,
+                
+            }, // args ends here
+          
+            callback: function(response) {
+                
+                document.getElementById('msgbox').value = " ";
+                
+            } // call back ends here
+            
+        }); // frappe.call ends here
+
+    } // function ends here
+    
+    // Show Modal
+    
+    function showChat(emp){
+    
+        $('#myModal_three').modal('show');
+        
+        var employee = JSON.parse(emp);
+        
+        var snd_btn = document.getElementById('snd_btn');
+        
+        snd_btn.setAttribute('value',employee);
+        
+        var refresh_btn = document.getElementById('refresh_btn');
+        
+        refresh_btn.setAttribute('value',employee);
+        
+        refresh_btn.setAttribute('class',employee);
+
+        var url=`/api/resource/Employee/?filters=[["status","=","Active"],["employee","=","${employee}"]]&fields=["employee","employee_name","department","company","default_shift","holiday_list","date_of_joining","image"]&limit_page_length=None`;
+       
+        fetch(url).then((r)=>r.json()).then((js)=>{// console.log(js);
+        
+            var item=js.data[0]; 
+    
+            // Display the Employee Name
+            
+            var emp_chat_name = document.getElementById('emp_chat_name');
+            
+            emp_chat_name.innerHTML = item.employee_name + "-" + item.employee;
+            
+            // Display the Employee Image
+            
+            var emp_chat_image = document.getElementById('emp_chat_image');
+            
+            emp_chat_image.innerHTML = "<img src='" + item.image + "'height='30px;' 'width= 60px;' class='img-40 rounded-circle'>";
+            
+        }); // fetch(url) ends here
+
+        display_chat(employee);
+
+    } // "modalshow" function ends here
+    
+    // Hide Modal
+    
+    function hideModal_three(){
+    
+        $('#myModal_three').modal('hide');
+      
+    } // "hideModal_three" function ends here
+    
+   // Start Individual Chat
+    
+    function chat_message(employee){
+        
+        // var employee = JSON.parse(employee);
+        var msgbox = $('#msgbox_one').val();
+        // console.log(msgbox);
+        var selectBoxx =  "text";
+        var updated_selectBoxx = selectBoxx;
+        var values_one=[];
+        // console.log(updated_selectBoxx);
+        values_one.push(employee)
+        
+        frappe.call({
+            
+            method: 'conversation_with_admin',
+          
+            args: {
+            
+                recipient: values_one,
+                message: msgbox,
+                message_type: updated_selectBoxx,
+                
+            }, // args ends here
+          
+            callback: function(response) {
+                
+                display_chat(employee);
+                
+                msgbox.innerHTML = " ";
+                
+                document.getElementById('msgbox_one').value = " ";
+            
+            } // call back ends here
+            
+        }); // frappe.call ends here
+
+    } // function ends here 
+    
+    // Display of individual conversation
+    
+    function display_chat(employee) {
+       
+        frappe.call({method:'thread_id_wise_chat',
+        
+            args : { 
+                
+                employee : employee,
+                
+            }, // args ends here
+            
+            callback : (res)=>{
+                
+                var url_one=`/api/resource/Employee/?filters=[["user_id","=","${frappe.user_id}"]]&fields=["employee"]`;
+                
+                fetch(url_one).then((r)=>r.json()).then((js_one)=>{// console.log(js_one);
+                
+                    var sender = js_one.data[0].employee;
+                    
+                    var chatArea = document.getElementById('chatArea');
+    
+                    chatArea.innerHTML = " ";
+
+                    var br = document.createElement('br');
+                    
+                    chatArea.appendChild(br);
+                    // chatArea.style.backgroundColor="red"
+                            
+                    for (var i=0; i<res.message.length; i++){
+                        
+                        var item_one = res.message[i];
+
+                        if(item_one.sender == sender){
+                            
+                            var row = document.createElement('div');
+                            row.setAttribute('class',"row  col-xl-12 col-12 p-0")
+                            // row.style.backgroundColor="blue";
+                            
+                            var div1 = document.createElement('div');
+                            div1.setAttribute('class','col-xl-6 col-6');
+        
+                            var div2 = document.createElement('div');
+                            div2.setAttribute('class','col-xl-6 col-6');
+                            
+                            var h6 = document.createElement('h6');
+                            h6.style.backgroundColor = '#009933';
+                            h6.style.border = '1px solid #009933';
+                            h6.style.borderRadius = '10px';
+                            h6.setAttribute('class','text-light pt-1 pl-2 pb-1 pr-1');
+                            
+                            var sub=document.createElement('span');
+                            sub.setAttribute('class','text-left');
+                            sub.style.fontSize = '12px';
+                            sub.innerHTML = item_one.content;
+                            
+                            var p = document.createElement('p');
+                            p.setAttribute('class','pt-1 text-right');
+                            p.style.fontSize = '9px';
+                            p.innerHTML = moment(item_one.timestamp).format("HH:MM");
+                            
+
+                            h6.appendChild(sub);
+                            h6.appendChild(p);
+                            div2.appendChild(h6);
+                            row.appendChild(div1);
+                            row.appendChild(div2);
+                            chatArea.appendChild(row);
+                            
+                        } // if ends here
+                        
+                        else if (item_one.sender == employee){
+                            
+                            var row = document.createElement('div');
+                            row.setAttribute('class',"row  col-xl-12 col-12 pl-0")
+                            row.style.marginLeft="-20px"
+                            // row.style.backgroundColor="blue"
+                            
+                            var div1 = document.createElement('div');
+                            div1.setAttribute('class','col-xl-6 col-6');
+        
+                            var div2 = document.createElement('div');
+                            div2.setAttribute('class','col-xl-6 col-6');
+                            
+                            var h6 = document.createElement('h6');
+                            h6.style.backgroundColor = '#e6e6e6';
+                            h6.style.border = '1px solid #e6e6e6';
+                            h6.style.borderRadius = '10px';
+                            h6.setAttribute('class','text-dark pt-1 pl-2 pb-1 pr-1');
+                            
+                            var sub=document.createElement('span');
+                            sub.setAttribute('class',' text-left');
+                            sub.style.fontSize = '12px';
+                            sub.innerHTML = item_one.content;
+                            
+                            var p = document.createElement('p');
+                            p.setAttribute('class','pt-1 text-right');
+                            p.style.fontSize = '9px';
+                            p.innerHTML = moment(item_one.timestamp).format("HH:MM");
+                            
+
+                            h6.appendChild(sub);
+                            h6.appendChild(p);
+                            div1.appendChild(h6);
+                            row.appendChild(div1);
+                            row.appendChild(div2);
+                            chatArea.appendChild(row);
+                            
+                        } // else if ends here
+                    
+                    } // for loop ends here
+                
+                }); // fetch(url_one) ends here
+
+            } // callback ends here 
+        
+        }); // frappe.call ends here   
+       
+   } // function ends here
+    
+    
+    // 
+    
+    function refresh_chat(){
+        // alert("jhsaghfhj")
+
+        refresh_btn = document.getElementById('refresh_btn')
+        
+        var classList = refresh_btn.classList;
+
+        display_chat(classList[0])
+        
+    } // function ends here
+    

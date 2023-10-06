@@ -1,0 +1,445 @@
+    // Hide the default footer & header from the web page
+    
+    $(document).ready(() => {  
+        
+        //console.log(document.getElementsByTagName("nav")[0].innerHTML);
+          
+        // Hiding the default navbar part
+            
+        // var e=document.getElementsByTagName("nav")[0];
+        // e.parentNode.removeChild(e);
+        
+        // Hiding the default footer part
+        
+        var f=document.getElementsByClassName("web-footer")[0];
+        f.parentNode.removeChild(f);
+        
+    }); // document.ready ends here
+    
+    // Login required
+
+    $(document).ready(()=>{
+ 
+        if (frappe.user_id==="Guest"){
+            
+            window.location.assign("/login");
+            
+        } // if ends here
+        
+    });//end windows.ready
+
+    // Employee information at the Right Corner
+
+    frappe.ready(() => {
+    
+        var url=`/api/resource/Employee/?filters=[["user_id","=","${frappe.user_id}"]]&fields=["image","first_name","department"]`;
+            // console.log(url);
+            
+            fetch(url).then((r)=>r.json()).then((js)=>{//console.log(js);
+                var item=js.data[0];
+                
+                // document.getElementById("nav_user").setAttribute("src",item.image);
+                document.getElementById("nav_name").innerHTML=item.first_name;
+                document.getElementById("de").innerHTML=item.department;
+                //alert("datepicker");
+                
+            }); // fetch.url ends here
+  
+    }); // frappe.ready ends here
+
+    //  Employee image at the Right Corner
+
+    frappe.ready(() => {
+        
+        var url=`/api/resource/Employee/?filters=[["user_id","=","${frappe.user_id}"]]&fields=["image","first_name"]`;
+        // console.log(url);
+        
+        fetch(url).then((r)=>r.json()).then((js)=>{//console.log(js);
+        var item=js.data[0];
+        //console.log(item);
+    
+        if (item.image){
+    
+            var a=document.getElementById("nav_user");
+            a.setAttribute("class","border");
+            a.setAttribute("src",item.image);
+        }
+            else 
+            {
+                var sn=item.first_name.substring(0,2).toUpperCase();
+              
+            var b=document.getElementById("nav_user");
+            b.setAttribute("class","border");
+            b.setAttribute("src",generated(sn));
+            }
+        
+        document.getElementById("nav_name").innerHTML=item.first_name;
+        
+    });
+    
+        function generated(name) {
+             
+            let canvas = document.createElement('canvas');
+              
+            canvas.height = 180;
+            canvas.width  = 180;
+              
+            let context = canvas.getContext('2d');
+              
+            //context.drawImage(this.poster, 0, 0)
+            context.fillStyle = "#eef0f2";
+            context.fillRect(0, 0, canvas.width, canvas.height);
+              
+            context.font = "50px Arial";
+            context.fillStyle="black";
+            context.fillText(name, 50, 95);
+              
+            return canvas.toDataURL('image/jpeg');
+            
+        } // function ends here  
+        
+    }); // frappe.ready ends here
+
+    //  Breadcrumbs for "Holiday List""
+         
+    function bdfun(){
+        
+        document.getElementById("bd").innerHTML="Holiday List";
+        
+    } // function ends here
+    
+    //  Breadcrumbs for "Holiday List Creation"
+    
+    function bdfun1(){
+        
+        document.getElementById("bd").innerHTML="Holiday List Creation";
+        
+        
+        var iframe=document.getElementById('target_iframe');    
+        var iframewindow=iframe.contentWindow;
+        var iframedocument=iframe.contentDocument;
+        
+        
+        // Hide Nav Bar    
+        
+        var input_one = iframedocument.querySelector("div[class='container']");
+        console.log(input_one);
+        input_one.style.display = "none";
+        
+        // Hide Toggle Button 
+        
+        var input_two = iframedocument.querySelector("span[class='sidebar-toggle-btn']");
+        console.log(input_two);
+        input_two.style.display = "none";
+        
+        // hide sidebar Space 
+        
+        var input_three = iframedocument.querySelector("div[class='col-lg-2 layout-side-section']");
+        console.log(input_three);
+        input_three.style.display = "none";
+        
+        // hide color picker
+        
+        var input_four = iframedocument.querySelectorAll("div[class='row form-section card-section visible-section']")[3];
+        console.log(input_four);
+        input_four.style.display = "none";
+        
+    } // function ends here
+
+    // Holiday List - Type 02
+    
+    frappe.ready(()=>{
+        
+        var url=`/api/method/holiday_list`;
+        fetch(url).then((r)=>r.json()).then((js)=>{//console.log(js);
+        for (var i=0; i<js.message.length;i++){
+                var item=js.message[i];
+                var gap=moment(item.holiday_date).dayOfYear()-moment().dayOfYear();
+                if (gap<-5){gap=gap+366;}
+                js.message[i]["gap"]=gap;
+            }
+            js.message.sort(function(a,b){return a.gap-b.gap});
+            //console.log(r.message);
+            var table = document.getElementById('holiday');
+            for (var i=0; i<js.message.length;i++){
+                var item=js.message[i];
+                if(item.description!="Sunday" && item.description!="Saturday"){
+                        var gap1=moment().diff(moment(item.holiday_date),'days');
+                        
+    
+                        var row = table.insertRow();
+                        var cell1=row.insertCell();
+        
+                        // Holiday Date
+                        
+                        cell1.innerHTML=moment(item.holiday_date).format('DD/MM/YYYY');
+                        // cell1.style.borderBottom= "thin solid #00ffff";
+                        
+                        // cell1.style.fontSize='12px';
+                        // Holiday Day
+                        
+                        var cell2=row.insertCell();
+                        cell2.innerHTML=moment(item.holiday_date).format('dddd');
+                        // cell2.style.borderBottom= "thin solid #00ffff";
+                        
+                        // Holiday Description
+                        var cell3=row.insertCell();
+                        cell3.innerHTML=item.description;
+                        // cell3.style.borderBottom= "thin solid #00ffff";
+                        
+                    if(gap1>0 ){
+                        cell1.style.color="#7575a3";
+                        cell2.style.color="#7575a3";
+                        cell3.style.color="#7575a3";
+                    }
+                    else{
+                        cell1.style.color="#002db3";
+                        cell2.style.color="#002db3";
+                        cell3.style.color="#002db3";
+                        cell1.style.fontWeight="600";
+                        cell2.style.fontWeight="600";
+                        cell3.style.fontWeight="600";
+                    }
+                        
+                } // if statement ends here
+                
+            } // for loop ends here
+        });
+     });
+ 
+    // Download Employee Checklist Table
+
+    function changeFunc_one() {
+        
+        var selectBoxOne = document.getElementById("selectBox_one");
+        var selectedValueOne = selectBoxOne.options[selectBoxOne.selectedIndex].value;
+
+        if(selectedValueOne=="exportToExcel_one"){
+            
+          exportToExcel_one(); // calling the funtion to download the report in excel format
+          
+        } // else ends here
+        
+        else if(selectedValueOne=="downloadCSV_one"){
+            
+            downloadCSV_one(); // calling the funtion to download the report in csv format
+            
+        } // else ends here
+        
+        else if(selectedValueOne=="exportToPDF_one"){
+            
+            exportToPDF_one(); // calling the funtion to download the report in pdf format
+            
+        } // else ends here
+        
+    } // function ends here 
+    
+    //  Download in Excel for employee checklist table
+
+    function exportToExcel_one() {
+        
+        // createNewTable_one() // calling the function to generate a new table
+        
+        var table = document.getElementById("holiday_list_table");
+        var workbook = XLSX.utils.table_to_book(table, {sheet:"Sheet 1"});
+        var excelBuffer = XLSX.write(workbook, {bookType:'xlsx', type:'array'});
+        saveAsExcel_one(excelBuffer, "holiday_list_table.xlsx");
+        
+    } // function ends here
+
+    function saveAsExcel_one(buffer, filename) {
+        
+        var blob = new Blob([buffer], {type: 'application/octet-stream'});
+        var url = window.URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+    } // function ends here
+    
+   //  Download in CSV
+
+    function downloadCSV_one() {
+        
+        // Get the table data
+        
+        var tableOne = document.querySelector('table[id="holiday_list_table"]');
+        
+        // console.log(document.querySelectorAll('table')[0]);
+        
+        const rows = tableOne.querySelectorAll('tr');
+
+        // Build the CSV data
+        
+        let csv = '';
+        
+        for (let i = 0; i < rows.length; i++) {
+            
+            var cells = rows[i].querySelectorAll('td');
+            
+            if (cells.length===0){
+                
+                cells = rows[i].querySelectorAll('th');
+                
+            } // if ends here
+        
+          let row = '';
+          
+            if (rows[i].style.display!="none"){
+              
+                for (let j = 0; j < cells.length; j++) {
+                  
+                    row += cells[j].textContent.replaceAll(",","|") + ',';
+                
+                } // for loop ends here
+            
+            csv += row + '\r\n';
+          
+            } // if ends here
+          
+        } // for loop ends here
+
+        // Download the CSV file
+        
+        const link = document.createElement('a');
+        link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv));
+        link.setAttribute('download', 'holiday_list_table.csv');
+        link.click();
+        
+    } // function ends here  
+    
+    
+   function exportToPDF_one(){
+        
+        var month_value = document.getElementById('holiday_list_table').value
+        
+        $.getScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.min.js",()=>{ // calling the cdn for jsPDF
+        $.getScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.6/jspdf.plugin.autotable.min.js",()=>{ // calling the cdn for autotable
+        
+        var doc = new jsPDF('L', 'pt', 'letter');  
+        var htmlstring = '';  
+        var tempVarToCheckPageHeight = 0;  
+        var pageHeight = 0;  
+        pageHeight = doc.internal.pageSize.height; 
+        pageHeight = 2000; 
+        
+        specialElementHandlers = {  
+            
+            '#bypassme': function(element, renderer) {  
+        
+                return true  
+                
+            } // function ends here
+            
+        }; // Special Element Handler ends here
+        
+        margins = {  
+            
+            top: 150,
+            width: 1000 
+            
+        };  // Margin ends here
+        
+        var y = 20;  var x= 1800;
+        doc.setLineWidth(0.5);
+        
+        // Addition the first page heading
+        
+        doc.setFontSize(14);
+        doc.text(360, y = y + 20, "Holiday List");
+
+        // Addition the second page heading
+        
+        doc.setFontSize(12);
+        doc.text(335, y = y + 20, "Company : GewinnsHR");
+        
+        doc.autoTable({  
+            
+            html: '#holiday_list_table',  
+            startY: 70,
+            theme: 'plain',
+            fontSize: 10,
+
+            didParseCell: function (data) {
+                
+                data.cell.styles.lineColor = [0, 0, 0];  // Set border color
+                data.cell.styles.lineWidth = 0.1;        // Set the border width
+                
+                var row = data.row.index;
+                var column = data.column.index;
+            
+                // Check if it's a heading cell
+                data.cell.styles.halign = 'center';
+                // data.cell.styles.fillColor = '#D3D3D3';
+                data.cell.styles.fontSize = 8;
+                    
+            
+            }, // didParseCell ends here
+            
+            columnStyles: {
+            
+                0: { cellWidth: 220 },
+                1: { cellWidth: 220 },
+                2: { cellWidth: 265 }
+                
+            }, // column style ends here
+                
+            styles: {  
+                
+                minCellHeight: 10,  // set the minimum cell height
+            
+            },  // styles end here
+            
+        })  // doc.autotable ends here
+        
+        // Add a footer to each page
+        
+        var pageCount = doc.internal.getNumberOfPages();
+        
+        var currentD = moment().format("DD/MM/YYYY hh:mm:ss a")
+        
+        for (var i = 1; i <= pageCount; i++) {
+            
+            doc.setPage(i);
+            
+            var footerText = "Report Generated on : " + currentD;
+            
+            // var textX = 30;                                       // left Aligned
+            // var textY = doc.internal.pageSize.getHeight() - 35;   // 20 pixels from the bottom
+        
+            var textWidth = doc.getStringUnitWidth(footerText) * doc.internal.getFontSize();
+        
+            var textX = doc.internal.pageSize.getWidth() - textWidth - 20; // Aligned to the right margin with a 20-pixel padding
+        
+            var textY = doc.internal.pageSize.getHeight() - 35; // 20 pixels from the bottom
+        
+            doc.setFontSize(10);
+        
+            doc.text(footerText, textX, textY);
+            
+        } // for loop ends here
+        
+        // Add outline border to the entire document
+        
+            var pageCount = doc.internal.getNumberOfPages();
+            
+            for (var i = 0; i < pageCount; i++) {
+                
+                doc.setPage(i);
+                
+                doc.rect(20, 20, doc.internal.pageSize.getWidth() - 40, doc.internal.pageSize.getHeight() - 40, 'S');
+                
+            } // for loop ends here
+
+        doc.save('holiday_list_table.pdf'); // Save the report in pdf format
+    
+        }); // end of jspdf.min.js
+        }); // jspdf.plugin.autotable.min.js
+        
+    } // function ends here 
+    
+    
+    

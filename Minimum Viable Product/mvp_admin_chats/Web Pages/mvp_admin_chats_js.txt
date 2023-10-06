@@ -1,0 +1,82 @@
+:root{--theme-deafult: #3949ab!important;--theme-secondary:#4fc3f7!important;}
+  .cont-height{ height: 350px; overflow: auto; }
+  .map-cont-height{ height: 300px; overflow: auto; }
+  ul.act-list li{display: inline-block;}
+  ul.act-list li i{font-size:16px!important;}
+  .act-box{top: 20px!important; right: 15px!important;}
+  .prf-cont {height:90px!important;}
+  .page-wrapper.compact-wrapper .page-body-wrapper div.sidebar-wrapper .sidebar-main .sidebar-links .simplebar-wrapper .simplebar-mask .simplebar-content-wrapper .simplebar-content>li.sidebar-list:hover>a:hover 
+  {background-color:#EBF8FF!important;}
+  .page-wrapper .sidebar-main-title>div, .simplebar-scrollbar:before, .toggle-sidebar:before  {background-color:#EBF8FF!important;}
+  .page-wrapper .page-body-wrapper .page-title {padding-top: 20px!important;padding-bottom: 20px!important;}
+  .activity-timeline .media+.media {margin-top: 25px!important;}
+  table td {vertical-align:middle!important; padding: 0.25rem!important;}
+  .page-wrapper.compact-wrapper .page-body-wrapper div.sidebar-wrapper .sidebar-main .sidebar-links .simplebar-wrapper .simplebar-mask .simplebar-content-wrapper .simplebar-content>li .sidebar-link.active
+   {background-color:#EBF8FF!important;}
+   .page-wrapper.compact-wrapper .page-body-wrapper div.sidebar-wrapper .logo-wrapper, .page-wrapper.compact-wrapper .page-body-wrapper div.sidebar-wrapper .logo-icon-wrapper 
+   {padding: 23px 30px!important;}
+   li.att-cont{ width: 220px; }
+     li.att-cont .btn{ padding: 5px 15px; } 
+     .service-cont .card{height: 155px;}
+      .service-cont .card a{color: #333;}
+       .service-cont .card:hover {border:2px solid #333!important; transition: all 0.1s ease !important;} 
+
+.page-wrapper .page-header .header-wrapper .nav-right .profile-dropdown {right: -12px!important; left: inherit!important;}
+.page-wrapper.compact-wrapper .page-body-wrapper .page-body { margin-top: 0px!important;}
+table.small-t td, table.small-t th{padding: 0.5rem 1rem!important; white-space:nowrap;}
+
+#nav_user{
+    border-radius : 10px;
+    height: 40px;
+    width: 40px;
+}
+
+::-webkit-input-placeholder {
+  text-align: left;
+}
+
+/* Styling of edit Button starts */
+
+.button-29 {
+    appearance: none;
+    background-color: transparent;
+    border: 2px solid #989898;
+    border-radius: 15px;
+    box-sizing: border-box;
+    color: #989898;
+    cursor: pointer;
+    display: inline-block;
+    font-family: Roobert,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+    font-size: 16px;
+    font-weight: 600;
+    line-height: normal;
+    margin-left: 5px;
+    min-height: 30px;
+    min-width: 0;
+    outline: none;
+    padding: 5px 15px;
+    text-align: center;
+    text-decoration: none;
+    transition: all 300ms cubic-bezier(.23, 1, 0.32, 1);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    width: 100%;
+    will-change: transform;
+}
+
+.button-29:disabled {
+    pointer-events: none;
+}
+
+.button-29:hover {
+    color: #fff;
+    background-color: #989898;
+}
+
+.button-29:active {
+    box-shadow: none;
+    transform: translateY(0);
+}
+
+/* Styling of edit Button ends */

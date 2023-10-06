@@ -1,0 +1,10 @@
+doctype = 'Employee'
+field_name=args['field_name']
+frappe.errprint(field_name)
+
+# Execute the SQL query to retrieve labels
+sql_query = f"SELECT options FROM `tabDocField` WHERE parent = '{doctype}' AND fieldname IN ('{field_name}') AND options like '\n%';"
+results = frappe.db.sql(sql_query, as_dict=True)
+
+frappe.errprint(results)
+frappe.response["message"]=results
