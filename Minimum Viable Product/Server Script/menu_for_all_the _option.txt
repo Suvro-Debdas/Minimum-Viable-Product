@@ -1,9 +1,0 @@
-𝐏𝐮𝐫𝐩𝐨𝐬𝐞 :  𝐓𝐡𝐢𝐬 𝐬𝐞𝐫𝐯𝐞𝐫 𝐒𝐜𝐫𝐢𝐩𝐭 𝐢𝐬 𝐰𝐫𝐢𝐭𝐭𝐞𝐧 𝐭𝐨 𝐬𝐞𝐧𝐝 𝐭𝐡𝐞 𝐥𝐢𝐬𝐭 𝐨𝐟 𝐭𝐡𝐞 𝐨𝐩𝐭𝐢𝐨𝐧𝐬 𝐭𝐨 𝐭𝐡𝐞 𝐫𝐞𝐩𝐨𝐫𝐭𝐬 𝐭𝐨 .𝐓𝐡𝐢𝐬 𝐦𝐞𝐬𝐬𝐚𝐠𝐞 𝐰𝐢𝐥𝐥 𝐭𝐫𝐢𝐠𝐠𝐞𝐫 𝐢𝐟 𝐭𝐡𝐞 𝐫𝐞𝐩𝐨𝐫𝐭𝐬 𝐭𝐨 𝐬𝐞𝐧𝐝 "𝐌" 𝐢𝐧 𝐭𝐡𝐞 𝐰𝐡𝐚𝐭𝐬𝐚𝐩𝐩 𝐜𝐡𝐚𝐭.
-
-cell_no = frappe.db.sql("""SELECT cell_number FROM `tabEmployee` WHERE employee=%s""",('EMP/23/0000'),as_dict=True)
-
-msg = """*List of Shortcut Keys* \n*A* = Department-wise list of Unmarked Users\n*P* = Department-wise list of Marked Users\n*S* = Department-wise attendance summary\n*E* = Department-wise list of Employees\n*L* = Department-wise list of Employees who are on leave today\n*W* = Department-wise list of Employees who has week off on today\n*T* = Department-wise attendance report for today\n*MA* = Monthly attendance report"""
-
-# frappe.call('gewin_payroll.wa.send_text_message',recipient=cell_no[0].cell_number,message=msg,preview="False")
-frappe.call('gewin_payroll.wa.send_text_message',recipient="9647028701",message=msg,preview="False")
-frappe.call('gewin_payroll.wa.send_text_message',recipient="9340425342",message=msg,preview="False")
